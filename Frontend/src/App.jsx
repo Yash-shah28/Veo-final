@@ -1,12 +1,16 @@
-import { AuthProvider } from './auth/useAuth';
-import Dashboard from './pages/Dashboard';
+import { AuthProvider, useAuth } from "./auth/useAuth";
+import Login from "./auth/Login";
+import Dashboard from "./pages/Dashboard";
 
-function App() {
+function AppContent() {
+  const { user } = useAuth();
+  return user ? <Dashboard /> : <Login />;
+}
+
+export default function App() {
   return (
     <AuthProvider>
-      <Dashboard />
+      <AppContent />
     </AuthProvider>
   );
 }
-
-export default App;

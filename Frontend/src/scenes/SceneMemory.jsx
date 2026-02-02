@@ -1,20 +1,37 @@
-import { useSceneStore } from './sceneStore';
+import { useSceneStore } from "./sceneStore";
 
 export default function SceneMemory() {
-  const scenes = useSceneStore((state) => state.scenes);
+  const { scenes, currentIndex, nextScene, prevScene } = useSceneStore();
+
+  if (!scenes.length) return null;
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-white mb-4">Scene Memory</h2>
-      {scenes.length === 0 ? (
-        <p className="text-gray-400">No scenes created yet.</p>
-      ) : (
-        scenes.map((scene) => (
-          <div key={scene.id} className="p-4 bg-gray-800 rounded border-l-4 border-purple-500">
-            <p className="text-gray-300">{scene.description}</p>
-          </div>
-        ))
-      )}
+    <div className="mt-6 p-4 bg-zinc-800 rounded border border-zinc-700 text-sm text-gray-300">
+      <h3 className="text-lg font-semibold text-white mb-2">
+        Scene {currentIndex + 1} of {scenes.length}
+      </h3>
+
+      <p className="text-zinc-400 mb-4">
+        {scenes[currentIndex]?.description || "No description available"}
+      </p>
+
+      <div className="flex justify-between">
+        <button
+          onClick={prevScene}
+          className="px-3 py-1 bg-zinc-700 rounded disabled:opacity-40 hover:bg-zinc-600 transition"
+          disabled={currentIndex === 0}
+        >
+          ◀ Prev
+        </button>
+
+        <button
+          onClick={nextScene}
+          className="px-3 py-1 bg-zinc-700 rounded disabled:opacity-40 hover:bg-zinc-600 transition"
+          disabled={currentIndex === scenes.length - 1}
+        >
+          Next ▶
+        </button>
+      </div>
     </div>
   );
 }
