@@ -28,3 +28,8 @@ async def create_user(user: UserCreate):
 async def read_users():
     users = await db.users.find().to_list(1000)
     return [User(**user) for user in users]
+
+from app.auth.dependencies import get_current_user
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user

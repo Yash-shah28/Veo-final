@@ -9,7 +9,13 @@ export default function Login() {
 
   const submit = async () => {
     const res = await api.post("/auth/login", { email, password });
-    login(res.data.access_token, { name: "User" });
+    const token = res.data.access_token;
+
+    // Set token immediately for the next request
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    const userRes = await api.get("/users/me");
+    login(token, userRes.data);
   };
 
   return (
