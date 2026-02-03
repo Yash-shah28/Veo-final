@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "veo_db"
     
     # Gemini AI Configuration
-    gemini_api_key: str = ""
+    GEMINI_API_KEY: str = ""
 
     
     class Config:

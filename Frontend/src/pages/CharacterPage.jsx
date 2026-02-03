@@ -30,12 +30,11 @@ const VISUAL_STYLES = [
 const DURATION_OPTIONS = [8, 16, 24, 32, 40, 48, 56];
 
 export default function CharacterPage() {
-    const { projectId } = useParams();
     const navigate = useNavigate();
     const { logout } = useAuth();
-    const [project, setProject] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    
+    // Removed project state - not needed
+    const [loading, setLoading] = useState(false);
 
     // Current scene state
     const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
@@ -56,29 +55,11 @@ export default function CharacterPage() {
     const [generationError, setGenerationError] = useState("");
 
     useEffect(() => {
-        fetchProject();
-    }, [projectId]);
-
-    useEffect(() => {
         if (brokenScenes.length > 0 && currentSceneIndex < brokenScenes.length) {
             const scene = brokenScenes[currentSceneIndex];
             setGeneratedPrompt(scene.prompt || "");
         }
     }, [currentSceneIndex, brokenScenes]);
-
-    const fetchProject = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get(`/projects/${projectId}`);
-            setProject(response.data);
-            setError("");
-        } catch (err) {
-            console.error("Failed to fetch project:", err);
-            setError("Failed to load project");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleGeneratePrompt = async () => {
         try {
@@ -152,23 +133,7 @@ export default function CharacterPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p className="text-slate-400">Loading project...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (error || !project) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-400 mb-4">{error || "Project not found"}</p>
-                    <button
-                        onClick={() => navigate("/dashboard")}
-                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl transition-all"
-                    >
-                        Back to Dashboard
-                    </button>
+                    <p className="text-slate-400">Loading...</p>
                 </div>
             </div>
         );
@@ -177,8 +142,8 @@ export default function CharacterPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
             <Navbar
-                title={project.project_name}
-                subtitle="Talking Character Mode"
+                title="Talking Character Mode"
+                subtitle="Create educational character dialogues"
                 showBackButton={true}
                 backPath="/dashboard"
             />

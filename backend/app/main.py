@@ -4,6 +4,7 @@ from app.auth.routes import router as auth_router
 from app.users.routes import router as users_router
 from app.scenes.routes import router as scenes_router
 from app.projects.routes import router as projects_router
+from app.character.routes import router as character_router
 
 app = FastAPI(title="Veo Backend")
 
@@ -34,4 +35,5 @@ app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(users_router, prefix="/users", tags=["Users"])
 app.include_router(projects_router, prefix="/projects", tags=["Projects"])
 app.include_router(scenes_router, prefix="/scenes", tags=["Scenes"])
+app.include_router(character_router, prefix="/gemini", tags=["Gemini AI"])
 
