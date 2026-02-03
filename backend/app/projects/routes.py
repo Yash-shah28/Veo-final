@@ -202,6 +202,28 @@ async def break_script(
                 detail=f"AI processing failed: {str(ai_error)}"
             )
         
+        # 1. Delete existing scenes for this project (clean slate)
+        await db.scenes.delete_many({"project_id": ObjectId(project_id)})
+
+        # 2. Prepare new scenes for batch insertion
+        new_scenes = []
+        for scene_data in result["scenes"]:
+            scene_doc = scene_data.copy()
+            scene_doc["project_id"] = ObjectId(project_id)
+            scene_doc["user_id"] = ObjectId(current_user.id)
+            scene_doc["created_at"] = datetime.utcnow()
+            scene_doc["updated_at"] = datetime.utcnow()
+            scene_doc["characters_in_scene"] = {} # Initialize empty map for consistency
+            
+            # Map AI fields to DB schema if needed
+            if "visual_description" in scene_doc:
+                scene_doc["generated_prompt"] = scene_doc.pop("visual_description")
+            
+            new_scenes.append(scene_doc)
+            
+        if new_scenes:
+            await db.scenes.insert_many(new_scenes)
+
         # Update project with script and scene count
         update_data = {
             "raw_script": request.script,
@@ -215,14 +237,21 @@ async def break_script(
             {"$set": update_data}
         )
         
-        # Return the scenes and metadata
+        # Fetch the created scenes to return them with IDs
+        created_scenes = await db.scenes.find(
+            {"project_id": ObjectId(project_id)}
+        ).sort("scene_number", 1).to_list(100)
+        
         return {
             "success": True,
             "project_id": project_id,
-            "scenes": result["scenes"],
+            "scenes": [
+                {**scene, "_id": str(scene["_id"]), "project_id": str(scene["project_id"]), "user_id": str(scene["user_id"])} 
+                for scene in created_scenes
+            ],
             "total_scenes": result["total_scenes"],
             "story_summary": result.get("story_summary", ""),
-            "message": f"Successfully broke script into {result['total_scenes']} scenes"
+            "message": f"Successfully broke script into {result['total_scenes']} scenes and saved to database"
         }
         
     except HTTPException:
@@ -232,4 +261,115 @@ async def break_script(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to break script: {str(e)}"
         )
+
+class CharacterRequest(BaseModel):
+    role: str
+    name: str
+    description: str | None = None
+    voice_type: str | None = None
+    voice_tone: str | None = None
+    image_base64: str | None = None
+
+@router.post("/{project_id}/characters")
+async def add_project_character(
+    project_id: str,
+    character: CharacterRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Add a new character to the project"""
+    try:
+        # Verify project existence
+        project = await db.projects.find_one({
+            "_id": ObjectId(project_id),
+            "user_id": ObjectId(current_user.id)
+        })
+        
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+            
+        # Create character object
+        char_data = {
+            "name": character.name,
+            "base_description": character.description,
+            "voice_type": character.voice_type,
+            "voice_tone": character.voice_tone,
+            "image_base64": character.image_base64,
+            "added_at": datetime.utcnow()
+        }
+        
+        # Normalize role key (e.g., "Supporting 1" -> "supporting_1")
+        role_key = character.role.lower().replace(" ", "_")
+        
+        # Update project using MongoDB dot notation for nested objects
+        await db.projects.update_one(
+            {"_id": ObjectId(project_id)},
+            {"$set": {
+                f"characters.{role_key}": char_data,
+                "last_updated": datetime.utcnow()
+            }}
+        )
+        
+        return {
+            "success": True, 
+            "message": f"Character '{character.name}' added as {character.role}",
+            "character": {
+                "role": role_key,
+                **char_data
+            }
+        }
+        
+        return {
+            "success": True, 
+            "message": f"Character '{character.name}' added as {character.role}",
+            "character": {
+                "role": role_key,
+                **char_data
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to add character: {str(e)}"
+        )
+
+@router.get("/{project_id}/scenes")
+async def get_project_scenes(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all scenes for a specific project"""
+    try:
+        # Verify project existence
+        project = await db.projects.find_one({
+            "_id": ObjectId(project_id),
+            "user_id": ObjectId(current_user.id)
+        })
+        
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+            
+        scenes = await db.scenes.find(
+            {"project_id": ObjectId(project_id)}
+        ).sort("scene_number", 1).to_list(1000)
+        
+        # Convert ObjectId to str for response
+        return [
+            {**scene, "_id": str(scene["_id"]), "project_id": str(scene["project_id"]), "user_id": str(scene["user_id"])} 
+            for scene in scenes
+        ]
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch scenes: {str(e)}"
+        )
+
+
 
