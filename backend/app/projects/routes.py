@@ -6,8 +6,15 @@ from app.users.models import User
 from app.auth.dependencies import get_current_user
 from bson import ObjectId
 from datetime import datetime
+from pydantic import BaseModel
+from app.services.script_breaker import script_breaker
 
 router = APIRouter()
+
+# Request model for script breaking
+class ScriptBreakRequest(BaseModel):
+    script: str
+
 
 @router.get("/", response_model=List[ProjectListItem])
 async def get_user_projects(current_user: User = Depends(get_current_user)):
@@ -153,3 +160,76 @@ async def delete_project(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete project: {str(e)}"
         )
+
+@router.post("/{project_id}/break-script")
+async def break_script(
+    project_id: str,
+    request: ScriptBreakRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Break a script into scenes using AI
+    
+    This endpoint uses LangChain with Gemini to intelligently break down
+    a story script into optimal 8-second video scenes.
+    """
+    try:
+        # Verify project exists and belongs to user
+        project = await db.projects.find_one({
+            "_id": ObjectId(project_id),
+            "user_id": ObjectId(current_user.id)
+        })
+        
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+        
+        # Validate script
+        if not request.script or not request.script.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Script cannot be empty"
+            )
+        
+        # Break script using AI
+        try:
+            result = await script_breaker.break_script(request.script)
+        except Exception as ai_error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"AI processing failed: {str(ai_error)}"
+            )
+        
+        # Update project with script and scene count
+        update_data = {
+            "raw_script": request.script,
+            "script_broken": True,
+            "total_scenes": result["total_scenes"],
+            "last_updated": datetime.utcnow()
+        }
+        
+        await db.projects.update_one(
+            {"_id": ObjectId(project_id)},
+            {"$set": update_data}
+        )
+        
+        # Return the scenes and metadata
+        return {
+            "success": True,
+            "project_id": project_id,
+            "scenes": result["scenes"],
+            "total_scenes": result["total_scenes"],
+            "story_summary": result.get("story_summary", ""),
+            "message": f"Successfully broke script into {result['total_scenes']} scenes"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to break script: {str(e)}"
+        )
+
