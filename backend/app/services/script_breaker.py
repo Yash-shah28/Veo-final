@@ -26,7 +26,7 @@ class ScriptBreaker:
     """Service class for breaking scripts into scenes using LangChain and Gemini"""
     
     def __init__(self):
-        self.api_key = settings.gemini_api_key
+        self.api_key = settings.GEMINI_API_KEY
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not configured in settings")
 

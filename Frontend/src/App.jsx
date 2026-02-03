@@ -56,8 +56,10 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
+      
+      {/* Standalone Character Mode - No project required */}
       <Route
-        path="/project/:projectId/character"
+        path="/character"
         element={
           <ProtectedRoute>
             <CharacterPage />

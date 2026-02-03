@@ -63,7 +63,8 @@ export default function Dashboard() {
       if (response.data.project_type === "storytelling") {
         navigate(`/project/${projectId}/storytelling`);
       } else if (response.data.project_type === "character") {
-        navigate(`/project/${projectId}/character`);
+        // Navigate to standalone character mode (no project needed)
+        navigate(`/character`);
       }
     } catch (err) {
       console.error("Failed to create project:", err);
@@ -83,7 +84,8 @@ export default function Dashboard() {
     if (project.project_type === "storytelling") {
       navigate(`/project/${projectId}/storytelling`);
     } else if (project.project_type === "character") {
-      navigate(`/project/${projectId}/character`);
+      // Navigate to standalone character mode
+      navigate(`/character`);
     }
   };
 
