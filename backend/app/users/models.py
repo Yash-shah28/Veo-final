@@ -7,7 +7,7 @@ PyObjectId = Annotated[str, BeforeValidator(lambda x: str(x) if x is not None el
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
+    name: str
     is_active: bool = True
 
 class UserCreate(UserBase):
