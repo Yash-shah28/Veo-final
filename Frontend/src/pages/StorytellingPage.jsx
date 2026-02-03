@@ -44,6 +44,11 @@ export default function StorytellingPage() {
             const response = await api.get(`/projects/${projectId}`);
             setProject(response.data);
 
+            // Restore script if saved
+            if (response.data.raw_script) {
+                setScript(response.data.raw_script);
+            }
+
             // Load existing characters if any
             if (response.data.characters) {
                 const charArray = Object.entries(response.data.characters).map(([role, data]) => ({
@@ -51,6 +56,16 @@ export default function StorytellingPage() {
                     ...data
                 }));
                 setCharacters(charArray);
+            }
+
+            // Fetch scenes if script was already broken
+            if (response.data.script_broken) {
+                try {
+                    const scenesResponse = await api.get(`/projects/${projectId}/scenes`);
+                    setScenes(scenesResponse.data);
+                } catch (sceneErr) {
+                    console.error("Failed to load scenes:", sceneErr);
+                }
             }
 
             setError("");
@@ -94,22 +109,48 @@ export default function StorytellingPage() {
         }
     };
 
-    const handleAddCharacter = () => {
+    const handleAddCharacter = async () => {
         if (!newCharacter.role || !newCharacter.name) {
             alert("Please fill in role and name");
             return;
         }
 
-        setCharacters([...characters, { ...newCharacter }]);
-        setNewCharacter({
-            role: "",
-            name: "",
-            description: "",
-            voiceType: "",
-            voiceTone: "",
-            image: null
-        });
-        setShowCharacterModal(false);
+        try {
+            const response = await api.post(`/projects/${projectId}/characters`, {
+                role: newCharacter.role,
+                name: newCharacter.name,
+                description: newCharacter.description,
+                voice_type: newCharacter.voiceType,
+                voice_tone: newCharacter.voiceTone,
+                image_base64: newCharacter.image
+            });
+
+            if (response.data.success) {
+                const addedChar = response.data.character;
+                // Convert back to frontend format if needed, though backend returns normalized role key
+                // Ideally we use what the backend gave us to stay in sync
+                setCharacters([...characters, {
+                    ...addedChar,
+                    role: newCharacter.role, // Use the display role for now
+                    voiceType: addedChar.voice_type,
+                    voiceTone: addedChar.voice_tone,
+                    image: addedChar.image_base64
+                }]);
+
+                setNewCharacter({
+                    role: "",
+                    name: "",
+                    description: "",
+                    voiceType: "",
+                    voiceTone: "",
+                    image: null
+                });
+                setShowCharacterModal(false);
+            }
+        } catch (err) {
+            console.error("Failed to add character:", err);
+            alert("Failed to add character: " + (err.response?.data?.detail || err.message));
+        }
     };
 
     const handleImageUpload = (e) => {
@@ -247,6 +288,28 @@ export default function StorytellingPage() {
                                                             </span>
                                                         ))}
                                                     </div>
+
+                                                    {/* Generated Prompt Display */}
+                                                    {(scene.generated_prompt || scene.visual_description) && (
+                                                        <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700/30 group">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-xs uppercase font-bold text-purple-400 tracking-wider">Visual Prompt</span>
+                                                                <button
+                                                                    onClick={() => navigator.clipboard.writeText(scene.generated_prompt || scene.visual_description)}
+                                                                    className="text-xs text-slate-500 hover:text-white flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
+                                                                    title="Copy prompt"
+                                                                >
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                    Copy
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-sm text-slate-300 font-mono leading-relaxed select-all">
+                                                                {scene.generated_prompt || scene.visual_description}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <button className="ml-4 p-2 hover:bg-slate-700/50 rounded transition-colors">
                                                     <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
