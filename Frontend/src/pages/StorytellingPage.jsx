@@ -72,37 +72,23 @@ export default function StorytellingPage() {
         setScriptError("");
 
         try {
-            // TODO: Call AI API to break script into scenes
-            // For now, simulating with a timeout
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Call backend API to break script with AI (LangChain + Gemini)
+            const response = await api.post(`/projects/${projectId}/break-script`, {
+                script: script
+            });
 
-            // Mock scenes data
-            const mockScenes = [
-                {
-                    scene_number: 1,
-                    description: "Opening scene with protagonist",
-                    duration: 8,
-                    characters: ["protagonist"]
-                },
-                {
-                    scene_number: 2,
-                    description: "Conflict introduction",
-                    duration: 8,
-                    characters: ["protagonist", "antagonist"]
-                },
-                {
-                    scene_number: 3,
-                    description: "Resolution",
-                    duration: 8,
-                    characters: ["protagonist"]
-                }
-            ];
-
-            setScenes(mockScenes);
+            // Set scenes from AI response
+            setScenes(response.data.scenes);
             setScriptError("");
+
+            // Optional: Show success message
+            console.log("Script broken successfully:", response.data.message);
         } catch (err) {
             console.error("Failed to break script:", err);
-            setScriptError("Failed to break script. Please try again.");
+            setScriptError(
+                err.response?.data?.detail ||
+                "Failed to break script. Please try again."
+            );
         } finally {
             setBreakingScript(false);
         }

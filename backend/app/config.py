@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "veo_db"
     
+    # Gemini AI Configuration
+    gemini_api_key: str = ""
+
+    
     class Config:
         env_file = ".env"
 
