@@ -371,6 +371,25 @@ Text: "{dialogue}"
             f"The final scene shows a strong, rhythmically beating heart in perfect health. The {character_name} character stands beside it with a caring, protective gesture. The heart beats steadily and powerfully, glowing with a healthy pinkish-red hue. Blood flows smoothly through clean, clear arteries. A timeline or path stretches into the distance, representing a long, healthy life ahead. The character waves goodbye warmly. The color palette is warm and hopeful - soft pinks, golds, and greens. Golden hour lighting creates a perfect, inspirational atmosphere. The camera slowly zooms out to show the whole healthy body system. The mood is uplifting and motivational."
         ]
         
+        # Map voice tone to description and emotion (SAME AS MAIN METHOD)
+        voice_map = {
+            "male_strong": ("Deep, resonant, strong MALE voice", "angry" if topic_mode == "side_effects" else "confident"),
+            "male_friendly": ("Warm, friendly MALE voice", "cheerful"),
+            "female_soft": ("Gentle, soothing FEMALE voice", "calm"),
+            "female_friendly": ("Friendly, warm FEMALE voice", "happy"),
+            "child_happy": ("Cute, playful child voice", "excited"),
+            "child_excited": ("Energetic, enthusiastic child voice", "very excited"),
+            "cheerful": ("Upbeat, energetic voice", "joyful"),
+            "calm": ("Soothing, peaceful voice", "serene"),
+            "wise": ("Knowledgeable teacher voice", "confident"),
+            "cartoon": ("Silly, animated voice", "playful"),
+            "superhero": ("Brave, heroic voice", "confident"),
+            "narrator": ("Clear storytelling voice", "neutral")
+        }
+        
+        # Get voice description and emotion based on selected voice_tone
+        voice_desc, voice_emotion = voice_map.get(voice_tone, ("Friendly voice", "neutral"))
+        
         for i in range(num_scenes):
             scene_num = i + 1
             
@@ -394,8 +413,8 @@ Duration: 8 seconds
 Aspect Ratio: 9:16
 
 [AUDIO STYLE]
-Voice: Friendly voice. Pitch/Timbre: medium. Emotion: {'cheerful' if topic_mode == 'benefits' else 'serious'}.
-Background: {'Upbeat music' if topic_mode == 'benefits' else 'Serious ambient sound'}
+Voice: {voice_desc}. Pitch/Timbre: {voice_tone}. Emotion: {voice_emotion}.
+Background: {'Low ominous hum' if topic_mode == 'side_effects' else 'Upbeat background music'}
 
 [LIP SYNC DATA]
 0.0s-8.0s
@@ -409,11 +428,11 @@ Text: "{dialogue}"
                 "scene_number": scene_num,
                 "visual_prompt": visual_prompt,
                 "dialogue": dialogue,
-                "emotion": "happy" if topic_mode == "benefits" else "serious",
+                "emotion": voice_emotion,
                 "teaching_point": f"{topic_mode.title()} - Part {scene_num}",
-                "voice_type": "Friendly voice",
-                "voice_emotion": "cheerful" if topic_mode == "benefits" else "serious",
-                "background_audio": "Upbeat music" if topic_mode == "benefits" else "Serious ambient",
+                "voice_type": voice_desc,
+                "voice_emotion": voice_emotion,
+                "background_audio": "Low ominous hum" if topic_mode == "side_effects" else "Upbeat background music",
                 "speaker_id": speaker_id,
                 "prompt": complete_prompt
             })
