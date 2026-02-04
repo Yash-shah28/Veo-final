@@ -31,8 +31,36 @@ export default function Dashboard() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/projects");
-      setProjects(response.data);
+      
+      // Fetch both storytelling and character projects
+      const [storytellingResponse, characterResponse] = await Promise.all([
+        api.get("/projects").catch(() => ({ data: [] })),
+        api.get("/gemini/projects").catch(() => ({ data: { projects: [] } }))
+      ]);
+      
+      // Combine and mark project types
+      const storytellingProjects = (storytellingResponse.data || []).map(p => ({
+        ...p,
+        project_type: p.project_type || "storytelling"
+      }));
+      
+      const characterProjects = (characterResponse.data.projects || []).map(p => ({
+        ...p,
+        _id: p._id,
+        project_name: p.project_name,
+        project_type: "character",
+        last_updated: p.last_updated || p.created_at,
+        created_at: p.created_at
+      }));
+      
+      // Combine and sort by last_updated
+      const allProjects = [...storytellingProjects, ...characterProjects].sort((a, b) => {
+        const dateA = new Date(a.last_updated || a.created_at);
+        const dateB = new Date(b.last_updated || b.created_at);
+        return dateB - dateA; // Most recent first
+      });
+      
+      setProjects(allProjects);
       setError("");
     } catch (err) {
       console.error("Failed to fetch projects:", err);
@@ -84,8 +112,8 @@ export default function Dashboard() {
     if (project.project_type === "storytelling") {
       navigate(`/project/${projectId}/storytelling`);
     } else if (project.project_type === "character") {
-      // Navigate to standalone character mode
-      navigate(`/character`);
+      // Navigate to character page with project_id to load saved scenes
+      navigate(`/character?project_id=${projectId}`);
     }
   };
 

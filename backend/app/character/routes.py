@@ -41,12 +41,32 @@ async def generate_character_dialogue(
             total_duration=request.total_duration
         )
         
-        # If project_id is provided, save to database
-        if request.project_id:
-            try:
-                # Save/update project
+        # Always save to database (create new project if project_id not provided)
+        try:
+            # Generate new project_id if not provided
+            project_id = request.project_id
+            user_id = str(current_user.id)
+            if not project_id:
+                # Create new project
+                project_doc = {
+                    "user_id": user_id,
+                    "project_name": f"{request.character_name} - {request.topic_mode}",
+                    "character_name": request.character_name,
+                    "voice_tone": request.voice_tone,
+                    "topic_mode": request.topic_mode,
+                    "scenario": request.scenario,
+                    "visual_style": request.visual_style,
+                    "language": request.language,
+                    "total_duration": request.total_duration,
+                    "created_at": datetime.utcnow(),
+                    "last_updated": datetime.utcnow()
+                }
+                insert_result = await db.character_projects.insert_one(project_doc)
+                project_id = str(insert_result.inserted_id)
+            else:
+                # Update existing project
                 project_data = CharacterProjectDB(
-                    user_id=str(current_user["_id"]),
+                    user_id=user_id,
                     project_name=f"{request.character_name} - {request.topic_mode}",
                     character_name=request.character_name,
                     voice_tone=request.voice_tone,
@@ -58,36 +78,40 @@ async def generate_character_dialogue(
                     last_updated=datetime.utcnow()
                 )
                 
-                # Upsert project
                 await db.character_projects.update_one(
-                    {"_id": ObjectId(request.project_id)},
+                    {"_id": ObjectId(project_id)},
                     {"$set": project_data.dict()},
                     upsert=True
                 )
+            
+            # Save individual scenes
+            for scene_data in result["scenes"]:
+                scene_db = CharacterSceneDB(
+                    project_id=project_id,
+                    user_id=user_id,
+                    scene_number=scene_data["scene_number"],
+                    dialogue=scene_data["dialogue"],
+                    emotion=scene_data["emotion"],
+                    teaching_point=scene_data["teaching_point"],
+                    generated_prompt=scene_data["prompt"],
+                    updated_at=datetime.utcnow()
+                )
                 
-                # Save individual scenes
-                for scene_data in result["scenes"]:
-                    scene_db = CharacterSceneDB(
-                        project_id=request.project_id,
-                        user_id=str(current_user["_id"]),
-                        scene_number=scene_data["scene_number"],
-                        dialogue=scene_data["dialogue"],
-                        emotion=scene_data["emotion"],
-                        teaching_point=scene_data["teaching_point"],
-                        generated_prompt=scene_data["prompt"],
-                        updated_at=datetime.utcnow()
-                    )
-                    
-                    # Upsert scene
-                    await db.character_scenes.update_one(
-                        {
-                            "project_id": request.project_id,
-                            "scene_number": scene_data["scene_number"]
-                        },
-                        {"$set": scene_db.dict()},
-                        upsert=True
-                    )
-            except Exception as db_error:
+                # Upsert scene
+                await db.character_scenes.update_one(
+                    {
+                        "project_id": project_id,
+                        "scene_number": scene_data["scene_number"]
+                    },
+                    {"$set": scene_db.dict()},
+                    upsert=True
+                )
+            
+            # Add project_id to response
+            result["project_id"] = project_id
+            result["message"] = "Scenes generated and saved successfully"
+            
+        except Exception as db_error:
                 print(f"Database save error: {str(db_error)}")
                 # Continue even if DB save fails
         
@@ -110,13 +134,20 @@ async def get_character_project_scenes(
 ):
     """Get all scenes for a character project"""
     try:
+        # Convert current_user to dict for easier access
+        user_id = str(current_user.id)
+        print(f"🔍 Loading project: {project_id} for user: {user_id}")
+        
         # Verify project belongs to user
         project = await db.character_projects.find_one({
             "_id": ObjectId(project_id),
-            "user_id": str(current_user["_id"])
+            "user_id": user_id
         })
         
+        print(f"📦 Project found: {project is not None}")
+        
         if not project:
+            print(f"❌ Project not found: {project_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found"
@@ -127,23 +158,31 @@ async def get_character_project_scenes(
             "project_id": project_id
         }).sort("scene_number", 1).to_list(100)
         
+        print(f"🎬 Found {len(scenes)} scenes")
+        
         # Convert ObjectId to string
         for scene in scenes:
             scene["_id"] = str(scene["_id"])
         
-        return {
+        result = {
             "project": {
                 "_id": str(project["_id"]),
-                "project_name": project["project_name"],
-                "character_name": project["character_name"],
-                "total_duration": project["total_duration"]
+                "project_name": project.get("project_name", "Untitled"),
+                "character_name": project.get("character_name", ""),
+                "total_duration": project.get("total_duration", 0)
             },
             "scenes": scenes
         }
         
+        print(f"✅ Returning {len(scenes)} scenes for project")
+        return result
+        
     except HTTPException as e:
         raise e
     except Exception as e:
+        import traceback
+        print(f"❌ ERROR in get_character_project_scenes: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch scenes: {str(e)}"
@@ -156,8 +195,9 @@ async def create_character_project(
 ):
     """Create a new character project"""
     try:
+        user_id = str(current_user.id)
         project = CharacterProjectDB(
-            user_id=str(current_user["_id"]),
+            user_id=user_id,
             **project_data
         )
         
@@ -180,9 +220,16 @@ async def get_user_character_projects(
 ):
     """Get all character projects for the current user"""
     try:
+        user_id = str(current_user.id)
+        print(f"🔍 Fetching projects for user: {user_id}")
+        
         projects = await db.character_projects.find({
-            "user_id": str(current_user["_id"])
+            "user_id": user_id
         }).sort("last_updated", -1).to_list(100)
+        
+        print(f"📦 Found {len(projects)} character projects")
+        for p in projects:
+            print(f"  - {p.get('project_name')} (ID: {p.get('_id')})")
         
         # Convert ObjectId to string
         for project in projects:

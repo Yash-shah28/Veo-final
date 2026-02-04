@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/useAuth";
 import api from "../api/client";
@@ -32,8 +32,11 @@ const DURATION_OPTIONS = [8, 16, 24, 32, 40, 48, 56];
 export default function CharacterPage() {
     const navigate = useNavigate();
     const { logout } = useAuth();
+    const [searchParams] = useSearchParams();
+    const projectIdFromUrl = searchParams.get('project_id');
     
-    // Removed project state - not needed
+    // Project state
+    const [projectId, setProjectId] = useState(projectIdFromUrl);
     const [loading, setLoading] = useState(false);
 
     // Current scene state
@@ -54,10 +57,44 @@ export default function CharacterPage() {
     const [generatedPrompt, setGeneratedPrompt] = useState("");
     const [generationError, setGenerationError] = useState("");
 
+    // Load project if project_id in URL
+    useEffect(() => {
+        if (projectIdFromUrl) {
+            loadProject(projectIdFromUrl);
+        }
+    }, [projectIdFromUrl]);
+
+    const loadProject = async (pid) => {
+        try {
+            setLoading(true);
+            const response = await api.get(`/gemini/projects/${pid}/scenes`);
+            
+            // Load project details
+            const project = response.data.project;
+            setCharacterName(project.character_name || "");
+            
+            // Load scenes
+            const scenes = response.data.scenes || [];
+            setBrokenScenes(scenes);
+            setCurrentSceneIndex(0);
+            
+            if (scenes.length > 0) {
+                setGeneratedPrompt(scenes[0].generated_prompt || "");
+            }
+            
+            setProjectId(pid);
+        } catch (err) {
+            console.error("Failed to load project:", err);
+            setGenerationError("Failed to load project. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (brokenScenes.length > 0 && currentSceneIndex < brokenScenes.length) {
             const scene = brokenScenes[currentSceneIndex];
-            setGeneratedPrompt(scene.prompt || "");
+            setGeneratedPrompt(scene.generated_prompt || scene.prompt || "");
         }
     }, [currentSceneIndex, brokenScenes]);
 
