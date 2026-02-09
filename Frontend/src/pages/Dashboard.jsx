@@ -18,9 +18,10 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
 
   const videoTypes = [
-    { value: "storytelling", label: "Story Telling" },
-    { value: "character", label: "Talking Character" },
-    { value: "ugc", label: "UGC/Advertisement (Coming Soon)", disabled: true }
+    { value: "storytelling", label: "📖 Story Telling" },
+    { value: "character_food", label: "🍎 Food Character (benefits/side effects)" },
+    { value: "character_educational", label: "📚 Educational Character (teaching)" },
+    { value: "ugc", label: "🎬 UGC/Advertisement (Coming Soon)", disabled: true }
   ];
 
   // Fetch projects on component mount
@@ -90,9 +91,10 @@ export default function Dashboard() {
       const projectId = response.data._id;
       if (response.data.project_type === "storytelling") {
         navigate(`/project/${projectId}/storytelling`);
-      } else if (response.data.project_type === "character") {
-        // Navigate to standalone character mode (no project needed)
-        navigate(`/character`);
+      } else if (newProject.videoType === "character_food") {
+        navigate(`/character/food`);
+      } else if (newProject.videoType === "character_educational") {
+        navigate(`/character/educational`);
       }
     } catch (err) {
       console.error("Failed to create project:", err);
@@ -109,11 +111,32 @@ export default function Dashboard() {
 
   const handleOpenProject = (project) => {
     const projectId = project._id;
-    if (project.project_type === "storytelling") {
+    const projectType = project.project_type;
+    
+    if (projectType === "storytelling") {
       navigate(`/project/${projectId}/storytelling`);
-    } else if (project.project_type === "character") {
-      // Navigate to character page with project_id to load saved scenes
-      navigate(`/character?project_id=${projectId}`);
+    } else if (projectType === "character" || projectType === "character_educational" || projectType === "character_food") {
+      // Determine content type from either content_type field or project_type suffix
+      let contentType = project.content_type;
+      
+      // If content_type not set, infer from project_type
+      if (!contentType) {
+        if (projectType === "character_educational") {
+          contentType = "educational";
+        } else if (projectType === "character_food") {
+          contentType = "food";
+        } else {
+          // Default for plain "character" type
+          contentType = "food";
+        }
+      }
+      
+      // Route to appropriate character page
+      if (contentType === "educational") {
+        navigate(`/character/educational?project_id=${projectId}`);
+      } else {
+        navigate(`/character/food?project_id=${projectId}`);
+      }
     }
   };
 
@@ -128,6 +151,8 @@ export default function Dashboard() {
     const typeMap = {
       "storytelling": "Story Telling",
       "character": "Talking Character",
+      "character_food": "Talking Character",
+      "character_educational": "Talking Character",
       "ugc": "UGC/Advertisement"
     };
     return typeMap[type] || type;

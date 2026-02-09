@@ -6,8 +6,10 @@ from bson import ObjectId
 class CharacterSceneRequest(BaseModel):
     """Request model for generating character dialogue"""
     character_name: str = Field(..., description="Name of the character (e.g., Apple, Carrot)")
+    content_type: str = Field(default="food", description="food or educational")  # NEW
     voice_tone: str = Field(..., description="Voice tone/type")
-    topic_mode: str = Field(..., description="benefits or side_effects")
+    custom_voice_description: Optional[str] = Field(None, description="Custom voice description when voice_tone='custom'")  # NEW
+    topic_mode: Optional[str] = Field(None, description="benefits or side_effects (for food content only)")  # NOW OPTIONAL
     scenario: Optional[str] = Field(None, description="Context/scenario for the character")
     visual_style: str = Field(default="3D Animation (Pixar/Disney) - Best")
     language: str = Field(default="hindi", description="hindi or english")
