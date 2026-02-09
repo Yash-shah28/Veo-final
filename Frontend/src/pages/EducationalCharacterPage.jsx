@@ -31,7 +31,7 @@ export default function EducationalCharacterPage() {
     const { logout } = useAuth();
     const [searchParams] = useSearchParams();
     const projectIdFromUrl = searchParams.get('project_id');
-    
+
     // Project state
     const [projectId, setProjectId] = useState(projectIdFromUrl);
     const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ export default function EducationalCharacterPage() {
 
     // Form state - Educational only
     const [characterName, setCharacterName] = useState("");
-    const [voiceTone, setVoiceTone] = useState("adult_male");
+    const [voiceTone, setVoiceTone] = useState("male_friendly");  // Default to valid option
     const [customVoiceDescription, setCustomVoiceDescription] = useState("");  // Custom voice field
     const [topicMode, setTopicMode] = useState("");  // Teaching topic
     const [outfitDescription, setOutfitDescription] = useState("");  // NEW: Outfit/scene description
@@ -66,27 +66,27 @@ export default function EducationalCharacterPage() {
         try {
             setLoading(true);
             const response = await api.get(`/gemini/projects/${pid}/scenes`);
-            
+
             // Load project details
             const project = response.data.project;
             setCharacterName(project.character_name || "");
-            
+
             // Restore ALL form fields from saved project
             if (project.voice_tone) setVoiceTone(project.voice_tone);
             if (project.scenario) setScenario(project.scenario);
             if (project.visual_style) setVisualStyle(project.visual_style);
             if (project.language) setLanguage(project.language);
             if (project.total_duration) setTotalDuration(project.total_duration);
-            
+
             // Load scenes
             const scenes = response.data.scenes || [];
             setBrokenScenes(scenes);
             setCurrentSceneIndex(0);
-            
+
             if (scenes.length > 0) {
                 setGeneratedPrompt(scenes[0].generated_prompt || "");
             }
-            
+
             setProjectId(pid);
         } catch (err) {
             console.error("Failed to load project:", err);
@@ -110,7 +110,7 @@ export default function EducationalCharacterPage() {
 
             // Prepare request data
             // Combine topic and outfit into scenario field for backend
-            const combinedScenario = outfitDescription 
+            const combinedScenario = outfitDescription
                 ? `${topicMode}. Outfit: ${outfitDescription}`
                 : topicMode;
 
@@ -134,7 +134,7 @@ export default function EducationalCharacterPage() {
             const scenes = response.data.scenes || [];
             setBrokenScenes(scenes);
             setCurrentSceneIndex(0);
-            
+
             if (scenes.length > 0) {
                 setGeneratedPrompt(scenes[0].prompt || response.data.prompt || "");
             }
@@ -254,21 +254,37 @@ export default function EducationalCharacterPage() {
 
                             {/* Custom Voice Description - Only shows when "I will describe" is selected */}
                             {voiceTone === "custom" && (
-                                <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
+                                <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4 animate-fadeIn">
                                     <label className="block text-sm font-medium text-purple-300 mb-2">
-                                        ✍️ Custom Voice Description
+                                        ✍️ Describe Your Custom Voice
                                     </label>
                                     <textarea
                                         value={customVoiceDescription}
                                         onChange={(e) => setCustomVoiceDescription(e.target.value)}
-                                        placeholder="Describe voice characteristics: e.g. 'Deep authoritative male voice, clear pronunciation, moderate pace, professional tone'"
-                                        className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[80px] resize-y"
+                                        placeholder="Example: 'Deep authoritative male voice with clear pronunciation, moderate pace around 150 WPM, neutral Indian accent, professional and confident tone, warm and engaging delivery'
+
+Or: 'Young energetic female voice, higher pitch, fast-paced delivery, friendly and enthusiastic tone, clear articulation'
+
+Be specific about: pitch, pace, accent, tone, age, gender, energy level"
+                                        className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[120px] resize-y"
+                                        rows={5}
                                     />
-                                    <p className="text-xs text-purple-400 mt-2">
-                                        💡 Describe pitch, tone, accent, pace, and characteristics
-                                    </p>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <p className="text-xs text-purple-400">
+                                            💡 Include: pitch, pace, accent, tone, age/gender, energy level
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            {customVoiceDescription.length} characters
+                                        </p>
+                                    </div>
+                                    {customVoiceDescription.trim().length > 0 && customVoiceDescription.trim().length < 20 && (
+                                        <p className="text-xs text-yellow-400 mt-2">
+                                            ⚠️ Please provide more details for better voice generation
+                                        </p>
+                                    )}
                                 </div>
                             )}
+
 
                             {/* Teaching Topic */}
                             <div>
@@ -287,7 +303,7 @@ export default function EducationalCharacterPage() {
                             {/* Outfit / Scene Description - Optional */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                                    👔 Outfit / Scene Description 
+                                    👔 Outfit / Scene Description
                                     <span className="text-slate-500 text-xs ml-2">(Optional)</span>
                                 </label>
                                 <textarea
@@ -358,7 +374,11 @@ export default function EducationalCharacterPage() {
                             {/* Generate Button */}
                             <button
                                 onClick={handleGeneratePrompt}
-                                disabled={generating || !characterName.trim()}
+                                disabled={
+                                    generating ||
+                                    !characterName.trim() ||
+                                    (voiceTone === "custom" && customVoiceDescription.trim().length < 20)
+                                }
                                 className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl font-semibold text-lg shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {generating ? (

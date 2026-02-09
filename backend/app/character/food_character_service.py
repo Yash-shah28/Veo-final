@@ -62,13 +62,13 @@ class FoodCharacterGenerator:
         else:
             visual_tone = "looking happy/friendly (big eyes, friendly smile)"
         
-        lang_display = "HINGLISH (Hindi-English Mix - Roman Script)" if language == "hindi" else "ENGLISH"
+        lang_display = "HINDI (Devanagari + English Terms)" if language == "hindi" else "ENGLISH"
         
         # Build food-specific prompt
         system_prompt = f"""Create {num_scenes} 7-SECOND video scenes about {character_name} ({topic_mode}).
 
 LANGUAGE: {lang_display}
-🚨 USE NATURAL HINGLISH (Roman Script)
+🚨 USE DEVANAGARI FOR HINDI + ENGLISH FOR TERMS
 
 For each scene:
 ===SCENE X===
@@ -89,12 +89,21 @@ Teaching Point:
 ✅ DO NOT include voice anchor or audio descriptor in Visual Prompt
 ✅ {"Concerned/warning expressions for side effects" if topic_mode == "side_effects" else "Happy/friendly expressions for benefits"}
 
-🗣️ HINGLISH RULES (MANDATORY):
-✅ Mix Hindi verbs + English nouns (boost karta, improve karta, provide karta)
-✅ Technical terms in ENGLISH (Vitamin, Protein, Calcium, Fiber, Iron)
-✅ Simple Hindi words (main, hoon, hai, ko, se, mein, mujhme)
-✅ Write in ROMAN script (NOT Devanagari)
-✅ Sound like casual Indian conversation
+🗣️ HINDI DIALOGUE RULES (Devanagari + English Terms):
+✅ Write Hindi words in DEVANAGARI script (मैं, हूँ, है, को, से, में, मुझमें)
+✅ Keep English for terms without good Hindi equivalents:
+   - Nutrition: Vitamin, Protein, Calcium, Fiber, Iron, Antioxidant
+   - Health: Heart, Immunity, Energy, Digestion, Blood Pressure
+   - Food terms: Apple, Carrot, Orange, Banana (keep original names)
+   - Modern words: Boost, Healthy, Strong, Fresh
+✅ Mix both scripts naturally in same sentence
+✅ Sound like casual Indian conversation about food/health
+
+🎯 CORRECT EXAMPLES (Devanagari+English):
+✅ "मैं Apple हूँ। मुझमें Vitamin C है।"
+✅ "Heart को healthy रखता हूँ।"
+✅ "Energy boost करता हूँ।"
+✅ "Immunity को strong बनाता हूँ।"
 
 🎨 VISUAL RULES:
 ✅ Anthropomorphic food character (round apple with face, orange carrot)
@@ -105,8 +114,8 @@ Teaching Point:
 ✅ NO voice anchor or mic descriptions in visual
 
 ❌ ABSOLUTE FORBIDDEN ❌:
-❌ NO Devanagari script (मैं, हूँ, etc.)
-❌ NO formal Sanskrit Hindi (रोग प्रतिरोधक क्षमता)
+❌ NO Roman script for Hindi (main, hoon - USE: मैं, हूँ)
+❌ NO translating nutrition terms (Vitamin C must stay Vitamin C)
 ❌ NO dialogue exceeding word limits (will be REJECTED)
 ❌ NO incomplete sentences
 ❌ NO multiple sentences in one scene
@@ -120,8 +129,8 @@ CORRECT EXAMPLES:
 Visual Prompt:
 Anthropomorphic Apple character, rendered in charming 3D Pixar-Disney style. Vibrant red, perfectly round with glossy texture, small brown stem, two bright green leaves. Large expressive cartoon eyes with sparkles, thick eyelashes, wide friendly smile. Standing on white marble kitchen counter, body bouncing enthusiastically. Animated sparkles around suggesting freshness. Bright modern kitchen, soft natural sunlight through window, warm glow. Medium shot at eye level, personable and approachable. Soft lighting highlights glossy surface. No subtitles.
 
-Dialogue (HINGLISH):
-Main Apple hoon. Mujhme Vitamin C hai.
+Dialogue (HINDI):
+मैं Apple हूँ। मुझमें Vitamin C है।
 
 Teaching Point:
 Apples contain Vitamin C
@@ -131,19 +140,19 @@ Apples contain Vitamin C
 Visual Prompt:
 Same cheerful red Apple, more confident expression. Eyebrows furrowed helpfully, eyes gleaming. Green leaf extends pointing at glowing red heart icon floating beside, pulsing gently. Soft-focus garden background, lush green grass, bokeh sunlight through leaves, natural healthy atmosphere. Upright proud posture. Close-up on face and heart icon, emphasizing health. Warm golden-hour lighting, optimistic educational feel. No subtitles.
 
-Dialogue (HINGLISH):
-Heart ko healthy rakhta hoon.
+Dialogue (HINDI):
+Heart को healthy रखता हूँ।
 
 Teaching Point:
 Good for heart health
 ===END SCENE 2===
 
-WRONG EXAMPLES (TOO LONG - REJECTED):
+WRONG EXAMPLES (REJECTED):
+❌ "Main Apple hoon. Mujhme Vitamin C hai." (Roman script for Hindi - WRONG)
+❌ "मैं सेब हूँ। मुझमें विटामिन सी है।" (Translating Apple, Vitamin - WRONG)
 
-❌ मैं सेब हूँ। मुझमें विटामिन सी है। (Devanagari - WRONG)
 
-
-Generate {num_scenes} scenes in HINGLISH with STRICT limits:"""
+Generate {num_scenes} scenes in HINDI (Devanagari + English) with STRICT limits:"""
         
         # Call Gemini
         try:
@@ -210,8 +219,8 @@ Generate {num_scenes} scenes in HINGLISH with STRICT limits:"""
             teaching_point = teaching_match.group(1).strip() if teaching_match else ""
             
             # Clean up
-            visual_prompt = visual_prompt.replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
-            dialogue = dialogue.replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
+            visual_prompt = visual_prompt.replace("(HINDI):", "").replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
+            dialogue = dialogue.replace("(HINDI):", "").replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
             
             # Build complete prompt with voice in SPEAKER section only
             complete_prompt = f"""===== SCENE {i} (7 SECONDS) =====

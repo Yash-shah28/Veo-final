@@ -239,7 +239,7 @@ Example Visual Prompt Start:
         num_scenes = max(1, total_duration // 8)
         print(f"🎬 Scenes: {num_scenes}")
         
-        lang_display = "HINGLISH (Hindi-English Mix - Roman Script)" if language == "hindi" else "ENGLISH"
+        lang_display = "HINDI (Devanagari + English Tech Terms)" if language == "hindi" else "ENGLISH"
         
         # Build educational-specific prompt using clean teaching topic
         system_prompt = f"""Create {num_scenes} 7-SECOND scenes where {character_name} explains: {teaching_topic}
@@ -270,12 +270,21 @@ Teaching Point:
 ✅ DO NOT include voice anchor or audio descriptor in Visual Prompt
 ✅ {"Use EXACT outfit specified above" if outfit_description else "NO clothing descriptions allowed"}
 
-🗣️ HINGLISH RULES (MANDATORY):
-✅ Mix Hindi verbs + English nouns (bataunga, sikhaunga, dekhenge)
-✅ Technical terms in ENGLISH (AI, Photosynthesis, DNA, Gravity)
-✅ Simple Hindi (aaj, main, kya, hai, hota, karenge, mein)
-✅ Write in ROMAN script
-✅ Like teacher talking to Indian students
+🗣️ HINDI DIALOGUE RULES (Devanagari + English Tech Terms):
+✅ Write Hindi words in DEVANAGARI script (आज, मैं, आपको, बताऊँगा, कैसे, etc.)
+✅ Keep technical/modern terms in ENGLISH (Latin script):
+   - Technical: AI, ML, API, Cloud, Server, Database, Algorithm, Code, Query
+   - Modern: Video, Audio, Digital, Online, App, Software, Hardware
+   - Business: Meeting, Presentation, Project, Schedule, Deadline
+   - Numbers: 50%, 100MB, 5 minutes | Brands: Google, Python, AWS
+✅ Mix both scripts naturally in same sentence
+✅ Sound like Indian teacher speaking proper Hindi with English tech terms
+
+🎯 CORRECT EXAMPLES (Devanagari+English):
+✅ "आज मैं आपको बताऊँगा कि AI वीडियो कैसे बनाए जाते हैं।"
+✅ "Database में data सेव करने के लिए query लिखनी पड़ती है।"
+✅ "सबसे पहले server की availability चेक करनी चाहिए।"
+✅ "यह algorithm बहुत तेज़ है और अच्छा performance देता है।"
 
 🎨 VISUAL RULES:
 ✅ Realistic Character style
@@ -285,8 +294,8 @@ Teaching Point:
 ✅ NO voice anchor or mic descriptions in visual
 
 ❌ ABSOLUTE FORBIDDEN ❌:
-❌ NO Devanagari (आज, मैं, etc.)
-❌ NO formal Sanskrit (प्रकाश संश्लेषण)
+❌ NO Roman script for Hindi words (aaj, main - USE: आज, मैं)
+❌ NO translating technical terms (AI must stay AI, not कृत्रिम बुद्धिमत्ता)
 ❌ NO dialogue exceeding limits (WILL BE REJECTED)
 ❌ NO incomplete sentences
 ❌ NO multiple sentences per scene
@@ -300,8 +309,8 @@ CORRECT EXAMPLES (7 SECONDS):
 Visual Prompt:
 {"Yagnesh Modh, Realistic Character style, brightly lit modern digital studio. Smart green suit over crisp white collared shirt." if outfit_description else "Yagnesh Modh, Realistic Character style, professional appearance, brightly lit modern digital studio."} Genuine engagement, eyebrows raised, warm inviting smile. Leaning forward, direct eye contact with camera, personally addressing viewer. Hands open, palms upward, welcoming gesture drawing audience in. Background: subtle dynamic abstract digital patterns, cool blues and greens, technological innovation hints, not distracting. Eye-level medium shot, expressive upper body, inviting posture. Soft even studio lighting highlights features, approachable knowledgeable demeanor. No subtitles.
 
-Dialogue (HINGLISH):
-Aaj main bataunga AI videos kaise bante hain.
+Dialogue (HINDI):
+आज मैं आपको बताऊँगा कि AI वीडियो कैसे बनाए जाते हैं।
 
 Teaching Point:
 Introduction to AI video generation
@@ -311,18 +320,19 @@ Introduction to AI video generation
 Visual Prompt:
 {"Yagnesh Modh beside transparent digital whiteboard. Green suit, white shirt crisp." if outfit_description else "Yagnesh Modh beside transparent digital whiteboard, professional appearance."} Focused explanatory expression, slight brow furrow showing concentration. Right hand holds sleek futuristic stylus, pointing precisely at animated diagram on board. Diagram shows glowing nodes, flowing connections representing regeneration. Head tilted explaining, gaze shifting between diagram and camera. Bright focused lighting from board illuminates face, emphasizing content. Medium-wide shot frames Yagnesh and whiteboard, visual aid emphasis. No subtitles.
 
-Dialogue (HINGLISH):
-Characters har regeneration mein change hote hain.
+Dialogue (HINDI):
+हर regeneration में characters बदल जाते हैं।
 
 Teaching Point:
 AI characters vary each generation
 ===END SCENE 2===
 
 WRONG EXAMPLES (REJECTED):
-❌ आज मैं बताऊंगा AI videos कैसे बनते हैं। (Devanagari - WRONG)
+❌ "Aaj main aapko bataunga AI videos kaise banate hain" (Roman script for Hindi - WRONG)
+❌ "आज मैं आपको बताऊँगा कि कृत्रिम बुद्धिमत्ता वीडियो..." (Translating AI - WRONG)
 ❌ {"Inventing blazer when not specified" if not outfit_description else "Changing green suit to blue blazer"}
 
-Generate {num_scenes} scenes in HINGLISH with STRICT limits:"""
+Generate {num_scenes} scenes in HINDI (Devanagari + English) with STRICT limits:"""
         
         # Call Gemini
         try:
@@ -424,27 +434,17 @@ Text: "{dialogue}" """
         """
         Convert user's custom voice description into a structured voice prompt
         
-        This is the NEW METHOD that handles custom voice descriptions
+        This method creates a clean, direct voice prompt similar to predefined voices
         """
         # Clean up the description
         custom_description = custom_description.strip()
         
-        # Create structured prompt from custom description
-        custom_prompt = f"""Custom Voice Profile:
-{custom_description}
-
-Voice Direction: Embody the characteristics described above. Match the specified:
-- Age range and vocal maturity level
-- Pitch range and tonal qualities
-- Speaking pace and rhythm patterns
-- Accent and pronunciation style
-- Emotional baseline and energy level
-- Articulation and delivery characteristics
-- Any specific vocal attributes mentioned
-
-Maintain complete consistency with these voice characteristics throughout all dialogue."""
-
+        # Create a simple, direct prompt similar to predefined voice prompts
+        # This format works better with TTS systems
+        custom_prompt = f"{custom_description}. Clean audio, professional recording quality."
+        
         return custom_prompt
+
     
     def _extract_voice_description(self, description: str) -> str:
         """Extract voice characteristics from user description"""
