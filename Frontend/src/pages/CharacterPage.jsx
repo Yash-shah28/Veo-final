@@ -16,7 +16,7 @@ const VOICE_TONES = [
 ];
 
 const VISUAL_STYLES = [
-    "3D Animation (Pixar/Disney)",
+    "3D Animation Style",
     "Cinematic Photorealism",
     "Cartoon Style",
     "Anime Style",
@@ -44,7 +44,7 @@ export default function CharacterPage() {
     const [voiceTone, setVoiceTone] = useState("child_happy");
     const [topicMode, setTopicMode] = useState("");
     const [scenario, setScenario] = useState("");
-    const [visualStyle, setVisualStyle] = useState("3D Animation (Pixar/Disney)");
+    const [visualStyle, setVisualStyle] = useState("3D Animation Style");
     const [language, setLanguage] = useState("hindi");
     const [totalDuration, setTotalDuration] = useState(8);
     const [customDialogues, setCustomDialogues] = useState("");  // NEW: Custom dialogues from user

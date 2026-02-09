@@ -17,7 +17,7 @@ const VOICE_TONES = [
 ];
 
 const VISUAL_STYLES = [
-    "3D Animation (Pixar/Disney)",
+    "3D Animation Style",
     "Cinematic Photorealism",
     "Cartoon Style",
     "Anime Style",

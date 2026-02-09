@@ -11,7 +11,7 @@ class CharacterSceneRequest(BaseModel):
     custom_voice_description: Optional[str] = Field(None, description="Custom voice description when voice_tone='custom'")  # NEW
     topic_mode: Optional[str] = Field(None, description="benefits or side_effects (for food content only)")  # NOW OPTIONAL
     scenario: Optional[str] = Field(None, description="Context/scenario for the character")
-    visual_style: str = Field(default="3D Animation (Pixar/Disney) - Best")
+    visual_style: str = Field(default="3D Animation Style")
     language: str = Field(default="hindi", description="hindi or english")
     total_duration: int = Field(default=8, description="Total video duration in seconds")
     custom_dialogues: Optional[str] = Field(None, description="User-provided dialogues to break into scenes")  # NEW

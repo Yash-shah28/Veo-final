@@ -196,7 +196,7 @@ CORRECT EXAMPLES:
 
 ===SCENE 1===
 Visual Prompt:
-Anthropomorphic Apple character, rendered in charming 3D Pixar-Disney style. Vibrant red, perfectly round with glossy texture, small brown stem, two bright green leaves. Large expressive cartoon eyes with sparkles, thick eyelashes, wide friendly smile. Standing on white marble kitchen counter, body bouncing enthusiastically. Animated sparkles around suggesting freshness. Bright modern kitchen, soft natural sunlight through window, warm glow. Medium shot at eye level, personable and approachable. Soft lighting highlights glossy surface. No subtitles.
+Anthropomorphic Apple character, rendered in charming 3D animated style. Vibrant red, perfectly round with glossy texture, small brown stem, two bright green leaves. Large expressive cartoon eyes with sparkles, thick eyelashes, wide friendly smile. Standing on white marble kitchen counter, body bouncing enthusiastically. Animated sparkles around suggesting freshness. Bright modern kitchen, soft natural sunlight through window, warm glow. Medium shot at eye level, personable and approachable. Soft lighting highlights glossy surface. No subtitles.
 
 Dialogue (HINDI):
 मैं Apple हूँ। मुझमें Vitamin C है।
