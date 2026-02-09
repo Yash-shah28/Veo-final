@@ -5,6 +5,8 @@ import Register from "./auth/Register";
 import Dashboard from "./pages/Dashboard";
 import StorytellingPage from "./pages/StorytellingPage";
 import CharacterPage from "./pages/CharacterPage";
+import EducationalCharacterPage from "./pages/EducationalCharacterPage";
+
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -57,14 +59,29 @@ function AppContent() {
         }
       />
       
-      {/* Standalone Character Mode - No project required */}
+      {/* Character routes */}
       <Route
-        path="/character"
+        path="/character/food"
         element={
           <ProtectedRoute>
             <CharacterPage />
           </ProtectedRoute>
         }
+      />
+      
+      <Route
+        path="/character/educational"
+        element={
+          <ProtectedRoute>
+            <EducationalCharacterPage />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Legacy character route - redirect to food */}
+      <Route
+        path="/character"
+        element={<Navigate to="/character/food" replace />}
       />
 
       {/* Default redirect */}

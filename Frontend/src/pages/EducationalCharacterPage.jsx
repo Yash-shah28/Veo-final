@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 
 // 🎤 SIMPLE VOICE OPTIONS
 const VOICE_TONES = [
+    { value: "custom", label: "✍️ I will describe" },  // NEW: Custom voice option
     { value: "child_happy", label: "👶 Child - Happy & Playful" },
     { value: "child_excited", label: "🧒 Child - Excited & Energetic" },
     { value: "male_friendly", label: "👨 Male - Friendly" },
@@ -25,7 +26,7 @@ const VISUAL_STYLES = [
 
 const DURATION_OPTIONS = [8, 16, 24, 32, 40, 48, 56];
 
-export default function CharacterPage() {
+export default function EducationalCharacterPage() {
     const navigate = useNavigate();
     const { logout } = useAuth();
     const [searchParams] = useSearchParams();
@@ -39,12 +40,13 @@ export default function CharacterPage() {
     const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
     const [brokenScenes, setBrokenScenes] = useState([]);
 
-    // Form state - Food mode
+    // Form state - Educational only
     const [characterName, setCharacterName] = useState("");
-    const [voiceTone, setVoiceTone] = useState("child_happy");
-    const [topicMode, setTopicMode] = useState("");
-    const [scenario, setScenario] = useState("");
-    const [visualStyle, setVisualStyle] = useState("3D Animation (Pixar/Disney)");
+    const [voiceTone, setVoiceTone] = useState("adult_male");
+    const [customVoiceDescription, setCustomVoiceDescription] = useState("");  // Custom voice field
+    const [topicMode, setTopicMode] = useState("");  // Teaching topic
+    const [outfitDescription, setOutfitDescription] = useState("");  // NEW: Outfit/scene description
+    const [visualStyle, setVisualStyle] = useState("Realistic Character");
     const [language, setLanguage] = useState("hindi");
     const [totalDuration, setTotalDuration] = useState(8);
 
@@ -71,7 +73,6 @@ export default function CharacterPage() {
             
             // Restore ALL form fields from saved project
             if (project.voice_tone) setVoiceTone(project.voice_tone);
-            if (project.topic_mode) setTopicMode(project.topic_mode);
             if (project.scenario) setScenario(project.scenario);
             if (project.visual_style) setVisualStyle(project.visual_style);
             if (project.language) setLanguage(project.language);
@@ -107,16 +108,28 @@ export default function CharacterPage() {
             setGenerating(true);
             setGenerationError("");
 
-            const response = await api.post(`/gemini/generate-character-dialogue`, {
+            // Prepare request data
+            // Combine topic and outfit into scenario field for backend
+            const combinedScenario = outfitDescription 
+                ? `${topicMode}. Outfit: ${outfitDescription}`
+                : topicMode;
+
+            const requestData = {
                 character_name: characterName,
-                content_type: "food",  // Food content only
+                content_type: "educational",
                 voice_tone: voiceTone,
-                topic_mode: topicMode,
-                scenario: scenario,
+                scenario: combinedScenario,
                 visual_style: visualStyle,
                 language: language,
                 total_duration: totalDuration
-            });
+            };
+
+            // Add custom voice description if selected
+            if (voiceTone === "custom") {
+                requestData.custom_voice_description = customVoiceDescription;
+            }
+
+            const response = await api.post(`/gemini/generate-character-dialogue`, requestData);
 
             const scenes = response.data.scenes || [];
             setBrokenScenes(scenes);
@@ -184,8 +197,8 @@ export default function CharacterPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
             <Navbar
-                title="Food Character Mode"
-                subtitle="Create food character videos with health benefits or side effects"
+                title="Educational Character Mode"
+                subtitle="Create educational teaching videos"
                 showBackButton={true}
                 backPath="/dashboard"
             />
@@ -195,11 +208,11 @@ export default function CharacterPage() {
                     {/* Left Panel: Configuration */}
                     <div className="bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur-xl border border-slate-800/50 rounded-2xl p-8">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/50">
-                                <span className="text-2xl">🗣️</span>
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-600/50">
+                                <span className="text-2xl">📚</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold">Food Character</h2>
+                                <h2 className="text-2xl font-bold">Educational Character</h2>
                                 {totalScenes > 0 && (
                                     <p className="text-sm text-slate-400">Scene {currentScene} of {totalScenes}</p>
                                 )}
@@ -210,14 +223,14 @@ export default function CharacterPage() {
                             {/* Character Name */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                                    Food Character Name
+                                    Educator Name
                                 </label>
                                 <input
                                     type="text"
                                     value={characterName}
                                     onChange={(e) => setCharacterName(e.target.value)}
-                                    placeholder="e.g. Apple, Carrot, Banana"
-                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                    placeholder="e.g. Yagnesh Modh, Dr. Sharma, Professor Khan"
+                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                 />
                             </div>
 
@@ -239,33 +252,53 @@ export default function CharacterPage() {
                                 </select>
                             </div>
 
+                            {/* Custom Voice Description - Only shows when "I will describe" is selected */}
+                            {voiceTone === "custom" && (
+                                <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
+                                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                                        ✍️ Custom Voice Description
+                                    </label>
+                                    <textarea
+                                        value={customVoiceDescription}
+                                        onChange={(e) => setCustomVoiceDescription(e.target.value)}
+                                        placeholder="Describe voice characteristics: e.g. 'Deep authoritative male voice, clear pronunciation, moderate pace, professional tone'"
+                                        className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[80px] resize-y"
+                                    />
+                                    <p className="text-xs text-purple-400 mt-2">
+                                        💡 Describe pitch, tone, accent, pace, and characteristics
+                                    </p>
+                                </div>
+                            )}
 
-                            {/* Topic Mode - Benefits or Side Effects */}
+                            {/* Teaching Topic */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                                    Talking Topic
+                                    📚 Teaching Topic / Subject
                                 </label>
-                                <select
+                                <input
+                                    type="text"
                                     value={topicMode}
                                     onChange={(e) => setTopicMode(e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                                >
-                                    <option value="benefits">Health Benefits</option>
-                                    <option value="side_effects">Side Effects</option>
-                                </select>
+                                    placeholder="e.g. AI video generation, Python basics, Photosynthesis, Gravity"
+                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                />
                             </div>
 
-                            {/* Scenario */}
+                            {/* Outfit / Scene Description - Optional */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                                    Scenario (Optional)
+                                    👔 Outfit / Scene Description 
+                                    <span className="text-slate-500 text-xs ml-2">(Optional)</span>
                                 </label>
                                 <textarea
-                                    value={scenario}
-                                    onChange={(e) => setScenario(e.target.value)}
-                                    placeholder="Optional context: e.g., 'talking to a child', 'at the gym', 'in a kitchen'"
-                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[100px] resize-y"
+                                    value={outfitDescription}
+                                    onChange={(e) => setOutfitDescription(e.target.value)}
+                                    placeholder="Describe outfit and setting (optional). e.g. 'Wearing green suit with white shirt, in modern digital studio with tech background'"
+                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[80px] resize-y"
                                 />
+                                <p className="text-xs text-slate-500 mt-2">
+                                    💡 Leave blank for AI to decide. Specify outfit only if you want exact clothing.
+                                </p>
                             </div>
 
                             {/* Visual Style */}
@@ -326,7 +359,7 @@ export default function CharacterPage() {
                             <button
                                 onClick={handleGeneratePrompt}
                                 disabled={generating || !characterName.trim()}
-                                className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl font-semibold text-lg shadow-lg shadow-purple-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl font-semibold text-lg shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {generating ? (
                                     <>
@@ -337,7 +370,7 @@ export default function CharacterPage() {
                                         Generating...
                                     </>
                                 ) : (
-                                    <>🥕 Generate Dialogue & Break into Scenes</>
+                                    <>📚 Generate Teaching Scenes</>
                                 )}
                             </button>
 

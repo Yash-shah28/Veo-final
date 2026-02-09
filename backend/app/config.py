@@ -9,8 +9,11 @@ class Settings(BaseSettings):
     MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "veo_db"
     
-    # Gemini AI Configuration
+    # Gemini AI Configuration (Legacy)
     GEMINI_API_KEY: str = ""
+    
+    # Hugging Face Inference API Configuration
+    HUGGINGFACE_API_KEY: str = ""  # Get from: https://huggingface.co/settings/tokens
 
     
     class Config:

@@ -33,9 +33,11 @@ async def generate_character_dialogue(
         # Generate dialogue using Gemini
         result = await character_dialogue_generator.generate_character_dialogue(
             character_name=request.character_name,
+            content_type=getattr(request, 'content_type', 'food'),  # food or educational
             voice_tone=request.voice_tone,
-            topic_mode=request.topic_mode,
-            scenario=request.scenario or "",
+            custom_voice_description=getattr(request, 'custom_voice_description', None),
+            topic_mode=request.topic_mode or "",  # For food: benefits, side_effects (empty for educational)
+            scenario=request.scenario or "",  # For educational: teaching topic with optional outfit
             visual_style=request.visual_style,
             language=request.language,
             total_duration=request.total_duration
@@ -52,6 +54,7 @@ async def generate_character_dialogue(
                     "user_id": user_id,
                     "project_name": f"{request.character_name} - {request.topic_mode}",
                     "character_name": request.character_name,
+                    "content_type": getattr(request, 'content_type', 'food'),  # Store content type
                     "voice_tone": request.voice_tone,
                     "topic_mode": request.topic_mode,
                     "scenario": request.scenario,
