@@ -40,7 +40,8 @@ async def generate_character_dialogue(
             scenario=request.scenario or "",  # For educational: teaching topic with optional outfit
             visual_style=request.visual_style,
             language=request.language,
-            total_duration=request.total_duration
+            total_duration=request.total_duration,
+            custom_dialogues=getattr(request, 'custom_dialogues', None)  # NEW: Custom dialogues
         )
         
         # Always save to database (create new project if project_id not provided)

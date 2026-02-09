@@ -14,6 +14,7 @@ class CharacterSceneRequest(BaseModel):
     visual_style: str = Field(default="3D Animation (Pixar/Disney) - Best")
     language: str = Field(default="hindi", description="hindi or english")
     total_duration: int = Field(default=8, description="Total video duration in seconds")
+    custom_dialogues: Optional[str] = Field(None, description="User-provided dialogues to break into scenes")  # NEW
     project_id: Optional[str] = Field(None, description="Associated project ID")
 
 class CharacterScene(BaseModel):

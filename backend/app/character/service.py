@@ -142,7 +142,8 @@ class CharacterDialogueGenerator:
         scenario: str = "",
         visual_style: str = "Realistic Character",
         language: str = "hindi",
-        total_duration: int = 8
+        total_duration: int = 8,
+        custom_dialogues: str = None  # NEW: Custom dialogues for food
     ) -> Dict:
         """
         Dispatcher: Routes to food or educational character service
@@ -164,7 +165,8 @@ class CharacterDialogueGenerator:
                 scenario=scenario,
                 visual_style=visual_style,
                 language=language,
-                total_duration=total_duration
+                total_duration=total_duration,
+                custom_dialogues=custom_dialogues  # NEW: Pass custom dialogues
             )
         else:  # educational
             return await educational_character_generator.generate_dialogue(
