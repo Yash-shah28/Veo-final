@@ -152,20 +152,41 @@ class EducationalCharacterGenerator:
         language: str = "hindi",
         total_duration: int = 8
     ) -> Dict:
-        """Generate educational character dialogue with STRICT 7-second limits"""
+        """Generate educational character dialogue with distributed character appearances"""
         
         print(f"\n{'='*60}")
-        print(f"📚 GENERATING EDUCATIONAL CHARACTER SCENES")
+        print(f"📚 GENERATING EDUCATIONAL CHARACTER SCENES (DISTRIBUTED MODE)")
         print(f"{'='*60}")
         print(f"Character: {character_name}")
         print(f"Teaching: {scenario}")
         print(f"Language: {language}")
         print(f"Voice Tone: {voice_tone}")
+        print(f"Total Duration: {total_duration}s")
         print(f"Custom Voice Description: {custom_voice_description[:80] if custom_voice_description else 'None'}...")
         
         # Extract outfit and teaching topic from scenario
         # This also extracts voice description if it was mixed in the outfit field
         teaching_topic, outfit_description, voice_from_outfit = self._extract_outfit_from_scenario(scenario)
+        
+        # Calculate 3-POINT scene pattern
+        # Character appears for 8 seconds at START, MIDDLE, and END
+        # Visual scenes fill the gaps between these anchor points
+        num_total_scenes = max(3, total_duration // 8)  # Minimum 3 scenes
+        num_character_scenes = 3  # ALWAYS 3: Start, Middle, End (8s each)
+        num_visual_scenes = num_total_scenes - num_character_scenes
+        
+        # Calculate positions for character scenes
+        start_position = 1  # First scene
+        middle_position = (num_total_scenes // 2) + 1  # Middle scene
+        end_position = num_total_scenes  # Last scene
+        
+        print(f"🎬 Total Scenes: {num_total_scenes} (8 seconds each)")
+        print(f"👤 CHARACTER Scenes: {num_character_scenes} x 8s = 24 seconds total")
+        print(f"   - Position {start_position}: START (Introduction)")
+        print(f"   - Position {middle_position}: MIDDLE (Emphasis)")
+        print(f"   - Position {end_position}: END (Conclusion/Pitch)")
+        print(f"🎨 VISUAL Scenes: {num_visual_scenes} x 8s = {num_visual_scenes * 8} seconds total")
+        print(f"📊 3-Point Pattern: C-V-V-...-C-...-V-V-C")
         
         # ============================================
         # FIX: Handle custom voice description properly
@@ -235,104 +256,97 @@ Example Visual Prompt Start:
 {character_name}, [Style: {visual_style}], professional appearance. Standing confidently in [setting]. [Expression and gesture]. [Camera and lighting]. No subtitles.
 """
         
-        # Calculate scenes
-        num_scenes = max(1, total_duration // 8)
-        print(f"🎬 Scenes: {num_scenes}")
-        
         lang_display = "HINDI (Devanagari + English Tech Terms)" if language == "hindi" else "ENGLISH"
         
-        # Build educational-specific prompt using clean teaching topic
-        system_prompt = f"""Create {num_scenes} 7-SECOND scenes where {character_name} explains: {teaching_topic}
+        # Build educational-specific prompt for 3-POINT character structure
+        # Character appears for full 8 seconds at START, MIDDLE, and END
+        system_prompt = f"""Create {num_total_scenes} scenes (8 seconds each) teaching: {teaching_topic}
 
-LANGUAGE: {lang_display}
-🚨 USE NATURAL HINGLISH (Roman Script)
+🎯 3-POINT STRUCTURE (CRITICAL - EXACT POSITIONS):
+- Total scenes: {num_total_scenes} scenes x 8 seconds each
+- CHARACTER scenes: 3 scenes (8 seconds each = 24 seconds total)
+  * Scene {start_position}: START - Introduction/Hook
+  * Scene {middle_position}: MIDDLE - Key Point/Emphasis  
+  * Scene {end_position}: END - Conclusion/Call-to-Action
+- VISUAL scenes: {num_visual_scenes} scenes (8 seconds each = {num_visual_scenes * 8} seconds total)
+  * Fill positions between CHARACTER scenes with teaching illustrations
 
 📋 TEACHING TOPIC: {teaching_topic}
+LANGUAGE: {lang_display}
 
 {outfit_instruction}
 
-For each scene:
-===SCENE X===
-Visual Prompt (Veo 3 Format):
-{character_name}, [Style: {visual_style}]. {"[USE EXACT OUTFIT FROM ABOVE]" if outfit_description else "[Professional appearance - NO clothing details]"}. [Setting]. [Action/Emotion]. [Camera/lighting]. No subtitles.
+🎬 SCENE TYPES:
 
-Dialogue ({lang_display}):
-[Scene 1: Main {character_name} hoon + ONE point - MAX 25 WORDS]
-[Scene 2+: ONE fact ONLY - MAX 20 WORDS]
+TYPE A - CHARACTER SCENE (ON-CAMERA 8 SECONDS):
+The educator {character_name} appears ON CAMERA for a FULL 8-second scene
+- Duration: 8 seconds (FULL SCENE)
+- Dialogue: 25-30 words (complete thought)
+- Visual: {character_name} on camera, engaging directly with viewer
+- Positions: Scene {start_position} (START), Scene {middle_position} (MIDDLE), Scene {end_position} (END)
 
-Teaching Point:
-[Key point]
-===END SCENE X===
+TYPE B - CHARACTER SCENE (OFF-SCREEN 8 SECONDS - VISUAL):
+Teaching content illustrated while {character_name} continues speaking OFF-SCREEN
+- Duration: 8 seconds
+- Dialogue: 25-30 words (SAME CALLER MIC VOICE - CONTINUOUS SPEECH)
+- Visual: Detailed illustration of teaching point (diagrams, animations, examples)
+- Positions: All scenes EXCEPT {start_position}, {middle_position}, and {end_position}
+- Purpose: Deep explanation with visual aids while speaker continues talking
 
-🚨 ABSOLUTE LIMITS (7 SECONDS - NON-NEGOTIABLE) 🚨:
-✅ Scene 1: MAX 25 words (intro + one point)
-✅ Scene 2+: MAX 20 words - ONE complete thought
-✅ DO NOT include voice anchor or audio descriptor in Visual Prompt
-✅ {"Use EXACT outfit specified above" if outfit_description else "NO clothing descriptions allowed"}
+🎯 CRITICAL AUDIO RULE:
+- ALL scenes use the SAME CALLER MICROPHONE voice
+- In Type B scenes, the character is NOT visible, but it is the SAME PERSON speaking
+- This is NOT narration. It is CONTINUOUS DIALOGUE from the same speaker.
 
-🗣️ HINDI DIALOGUE RULES (Devanagari + English Tech Terms):
-✅ Write Hindi words in DEVANAGARI script (आज, मैं, आपको, बताऊँगा, कैसे, etc.)
-✅ Keep technical/modern terms in ENGLISH (Latin script):
-   - Technical: AI, ML, API, Cloud, Server, Database, Algorithm, Code, Query
-   - Modern: Video, Audio, Digital, Online, App, Software, Hardware
-   - Business: Meeting, Presentation, Project, Schedule, Deadline
-   - Numbers: 50%, 100MB, 5 minutes | Brands: Google, Python, AWS
-✅ Mix both scripts naturally in same sentence
-✅ Sound like Indian teacher speaking proper Hindi with English tech terms
+SCENE FORMAT EXAMPLES:
 
-🎯 CORRECT EXAMPLES (Devanagari+English):
-✅ "आज मैं आपको बताऊँगा कि AI वीडियो कैसे बनाए जाते हैं।"
-✅ "Database में data सेव करने के लिए query लिखनी पड़ती है।"
-✅ "सबसे पहले server की availability चेक करनी चाहिए।"
-✅ "यह algorithm बहुत तेज़ है और अच्छा performance देता है।"
+===SCENE 1 (8 SECONDS – CHARACTER ON-CAMERA)===
+SCENE TYPE:
+CHARACTER (ON-CAMERA)
 
-🎨 VISUAL RULES:
-✅ Realistic Character style
-✅ {"EXACT outfit from scenario: " + outfit_description if outfit_description else "NO clothing descriptions - focus on expression/setting only"}
-✅ Detailed setting (digital studio, tech lounge, whiteboard)
-✅ 100+ words per visual prompt
-✅ NO voice anchor or mic descriptions in visual
+VISUAL (VEO 3):
+{character_name}, [Style: {visual_style}]. {"[USE EXACT OUTFIT FROM ABOVE]" if outfit_description else "[Professional appearance]"}. [Setting]. Engaging directly with camera. [Action/Gesture]. No subtitles.
 
-❌ ABSOLUTE FORBIDDEN ❌:
-❌ NO Roman script for Hindi words (aaj, main - USE: आज, मैं)
-❌ NO translating technical terms (AI must stay AI, not कृत्रिम बुद्धिमत्ता)
-❌ NO dialogue exceeding limits (WILL BE REJECTED)
-❌ NO incomplete sentences
-❌ NO multiple sentences per scene
-❌ NO voice anchor in Visual Prompt
-❌ NO audio/mic descriptions in Visual Prompt
-❌ {"NO inventing outfits when none specified" if not outfit_description else "NO modifying the specified outfit"}
+DIALOGUE ({lang_display} – CONTINUOUS SPEECH FROM SAME CALLER MIC):
+[Intro dialogue text - approx 25 words]
 
-CORRECT EXAMPLES (7 SECONDS):
-
-===SCENE 1===
-Visual Prompt:
-{"Yagnesh Modh, Realistic Character style, brightly lit modern digital studio. Smart green suit over crisp white collared shirt." if outfit_description else "Yagnesh Modh, Realistic Character style, professional appearance, brightly lit modern digital studio."} Genuine engagement, eyebrows raised, warm inviting smile. Leaning forward, direct eye contact with camera, personally addressing viewer. Hands open, palms upward, welcoming gesture drawing audience in. Background: subtle dynamic abstract digital patterns, cool blues and greens, technological innovation hints, not distracting. Eye-level medium shot, expressive upper body, inviting posture. Soft even studio lighting highlights features, approachable knowledgeable demeanor. No subtitles.
-
-Dialogue (HINDI):
-आज मैं आपको बताऊँगा कि AI वीडियो कैसे बनाए जाते हैं।
-
-Teaching Point:
-Introduction to AI video generation
+TEACHING:
+[Teaching point]
 ===END SCENE 1===
 
-===SCENE 2===
-Visual Prompt:
-{"Yagnesh Modh beside transparent digital whiteboard. Green suit, white shirt crisp." if outfit_description else "Yagnesh Modh beside transparent digital whiteboard, professional appearance."} Focused explanatory expression, slight brow furrow showing concentration. Right hand holds sleek futuristic stylus, pointing precisely at animated diagram on board. Diagram shows glowing nodes, flowing connections representing regeneration. Head tilted explaining, gaze shifting between diagram and camera. Bright focused lighting from board illuminates face, emphasizing content. Medium-wide shot frames Yagnesh and whiteboard, visual aid emphasis. No subtitles.
+===SCENE 2 (8 SECONDS – CHARACTER OFF-SCREEN)===
+SCENE TYPE:
+CHARACTER (OFF-SCREEN CONTINUOUS SPEECH)
 
-Dialogue (HINDI):
-हर regeneration में characters बदल जाते हैं।
+VISUAL (VEO 3):
+[Detailed illustration description - 150+ words].
+NO on-screen character is visible, but the same human speaker from Scene 1 is actively speaking off-screen.
+This is NOT narration and NOT AI voice.
 
-Teaching Point:
-AI characters vary each generation
+DIALOGUE ({lang_display} – CONTINUOUS SPEECH FROM SAME CALLER MIC):
+[Explainer dialogue text - approx 25 words]
+
+TEACHING:
+[Teaching point]
 ===END SCENE 2===
 
-WRONG EXAMPLES (REJECTED):
-❌ "Aaj main aapko bataunga AI videos kaise banate hain" (Roman script for Hindi - WRONG)
-❌ "आज मैं आपको बताऊँगा कि कृत्रिम बुद्धिमत्ता वीडियो..." (Translating AI - WRONG)
-❌ {"Inventing blazer when not specified" if not outfit_description else "Changing green suit to blue blazer"}
+=== AUDIO SETTINGS (STRICT – DO NOT OVERRIDE) ===
+Input Source: Caller Microphone (Primary)
+Voice Capture: Live caller mic only
+Audio Mode: Continuous speech from same speaker as Scene 1
+No synthetic TTS
+No default narration
+No voice replacement
+No voice enhancement
+No pitch, tone, or accent modification
 
-Generate {num_scenes} scenes in HINDI (Devanagari + English) with STRICT limits:"""
+🎙️ VOICE CONTINUITY LOCK:
+- Speaker identity is unchanged from Scene 1
+- Same human voice continues even when off-screen
+- This audio is part of a single continuous explanation
+- AI-generated narration is STRICTLY DISABLED
+
+Generate {num_total_scenes} scenes following this exact format:"""
         
         # Call Gemini
         try:
@@ -372,9 +386,9 @@ Generate {num_scenes} scenes in HINDI (Devanagari + English) with STRICT limits:
         visual_style: str, 
         language: str
     ) -> list:
-        """Parse Gemini output into structured scenes with STATIC master voice prompt"""
+        """Parse Gemini output into structured scenes with CHARACTER (ON/OFF SCREEN) types"""
         scenes = []
-        scene_blocks = re.split(r'===SCENE \d+===', gemini_output)[1:]
+        scene_blocks = re.split(r'===SCENE \d+', gemini_output)[1:]
         
         for i, block in enumerate(scene_blocks, 1):
             if '===END SCENE' not in block:
@@ -382,52 +396,89 @@ Generate {num_scenes} scenes in HINDI (Devanagari + English) with STRICT limits:
             
             block = block.split('===END SCENE')[0].strip()
             
-            # Extract sections
-            visual_match = re.search(r'Visual Prompt.*?:\s*(.*?)(?=Dialogue|$)', block, re.DOTALL | re.IGNORECASE)
-            dialogue_match = re.search(r'Dialogue.*?:\s*(.*?)(?=Teaching Point|$)', block, re.DOTALL | re.IGNORECASE)
-            teaching_match = re.search(r'Teaching Point.*?:\s*(.*?)(?=$)', block, re.DOTALL | re.IGNORECASE)
+            # Detect scene type
+            scene_type = "CHARACTER (OFF-SCREEN)"  # Default
+            if "CHARACTER (ON-CAMERA)" in block or "SCENE TYPE:\nCHARACTER (ON-CAMERA)" in block:
+                scene_type = "CHARACTER (ON-SCREEN)"
+            elif "OFF-SCREEN" in block:
+                scene_type = "CHARACTER (OFF-SCREEN)"
+            
+            # Determine duration (All 8 seconds)
+            duration = 8
+            
+            # Extract sections with updated regex for new headers
+            visual_match = re.search(r'VISUAL \(VEO 3\).*?:\s*(.*?)(?=DIALOGUE|$)', block, re.DOTALL | re.IGNORECASE)
+            # Match Dialogue with variable header
+            dialogue_match = re.search(r'DIALOGUE.*?:\s*(.*?)(?=TEACHING|$)', block, re.DOTALL | re.IGNORECASE)
+            teaching_match = re.search(r'TEACHING.*?:\s*(.*?)(?=$)', block, re.DOTALL | re.IGNORECASE)
             
             visual_prompt = visual_match.group(1).strip() if visual_match else ""
             dialogue = dialogue_match.group(1).strip() if dialogue_match else ""
             teaching_point = teaching_match.group(1).strip() if teaching_match else ""
             
-            # Clean up
-            visual_prompt = visual_prompt.replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
-            dialogue = dialogue.replace("(HINGLISH):", "").replace("(ENGLISH):", "").strip()
+            # Clean up headers from dialogue text if caught
+            dialogue = re.sub(r'\(.*?\)', '', dialogue).strip()  # Remove parenthetical notes inside dialogue if any
             
             # Build complete prompt with voice description in SPEAKER section only
-            complete_prompt = f"""===== SCENE {i} (7 SECONDS) =====
+            complete_prompt = f"""===== SCENE {i} ({duration} SECONDS – {scene_type}) =====
+
+SCENE TYPE:
+{scene_type}
 
 VISUAL (VEO 3):
 {visual_prompt}
 
-DIALOGUE ({language.upper()}):
+DIALOGUE ({language.upper()} – CONTINUOUS SPEECH FROM SAME CALLER MIC):
 {dialogue}
 
 TEACHING:
 {teaching_point}
 
 === METADATA ===
-Duration: 7-8 seconds (SHORT!)
+Duration: {duration} seconds
+Scene Type: {scene_type}
 Style: {visual_style}
 Type: educational
+
+=== AUDIO SETTINGS (STRICT – DO NOT OVERRIDE) ===
+Input Source: Caller Microphone (Primary)
+Voice Capture: Live caller mic only
+Audio Mode: Continuous speech from same speaker as Scene 1
+No synthetic TTS
+No default narration
+No voice replacement
+No voice enhancement
+No pitch, tone, or accent modification
+
+🎙️ VOICE CONTINUITY LOCK:
+- Speaker identity is unchanged from Scene 1
+- Same human voice continues even when off-screen
+- This audio is part of a single continuous explanation
+- AI-generated narration is STRICTLY DISABLED
 
 SPEAKER:
 ID: {character_name.lower().replace(' ', '_')}_{voice_tone.replace(' ', '_')}
 Voice: {master_voice_description}
+Source: Same caller microphone as Scene 1
 Text: "{dialogue}" """
             
             scenes.append({
                 "scene_number": i,
+                "scene_type": scene_type,
+                "duration": duration,
                 "dialogue": dialogue,
-                "emotion": "engaging",
+                "emotion": "engaging" if "ON-SCREEN" in scene_type else "informative",
                 "teaching_point": teaching_point,
                 "prompt": complete_prompt,
-                "voice_description": master_voice_description  # Store for reference
+                "voice_description": master_voice_description
             })
         
-        print(f"✅ Parsed {len(scenes)} educational character scenes")
-        print(f"🎙️ All scenes use STATIC voice: {master_voice_description[:80]}...")
+        print(f"✅ Parsed {len(scenes)} educational scenes")
+        on_screen_scenes = [s for s in scenes if "ON-SCREEN" in s["scene_type"]]
+        off_screen_scenes = [s for s in scenes if "OFF-SCREEN" in s["scene_type"]]
+        print(f"👤 ON-SCREEN scenes: {len(on_screen_scenes)}")
+        print(f"🎨 OFF-SCREEN scenes: {len(off_screen_scenes)}")
+        print(f"🎙️ Voice Continuity: ENFORCED (Same Caller Mic)")
         return scenes
     
     def _create_custom_voice_prompt(self, custom_description: str) -> str:

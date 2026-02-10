@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null); // { id: string, type: string, name: string }
 
   const videoTypes = [
     { value: "storytelling", label: "📖 Story Telling" },
@@ -32,19 +33,19 @@ export default function Dashboard() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch both storytelling and character projects
       const [storytellingResponse, characterResponse] = await Promise.all([
         api.get("/projects").catch(() => ({ data: [] })),
         api.get("/gemini/projects").catch(() => ({ data: { projects: [] } }))
       ]);
-      
+
       // Combine and mark project types
       const storytellingProjects = (storytellingResponse.data || []).map(p => ({
         ...p,
         project_type: p.project_type || "storytelling"
       }));
-      
+
       const characterProjects = (characterResponse.data.projects || []).map(p => ({
         ...p,
         _id: p._id,
@@ -53,14 +54,14 @@ export default function Dashboard() {
         last_updated: p.last_updated || p.created_at,
         created_at: p.created_at
       }));
-      
+
       // Combine and sort by last_updated
       const allProjects = [...storytellingProjects, ...characterProjects].sort((a, b) => {
         const dateA = new Date(a.last_updated || a.created_at);
         const dateB = new Date(b.last_updated || b.created_at);
         return dateB - dateA; // Most recent first
       });
-      
+
       setProjects(allProjects);
       setError("");
     } catch (err) {
@@ -112,13 +113,13 @@ export default function Dashboard() {
   const handleOpenProject = (project) => {
     const projectId = project._id;
     const projectType = project.project_type;
-    
+
     if (projectType === "storytelling") {
       navigate(`/project/${projectId}/storytelling`);
     } else if (projectType === "character" || projectType === "character_educational" || projectType === "character_food") {
       // Determine content type from either content_type field or project_type suffix
       let contentType = project.content_type;
-      
+
       // If content_type not set, infer from project_type
       if (!contentType) {
         if (projectType === "character_educational") {
@@ -130,13 +131,43 @@ export default function Dashboard() {
           contentType = "food";
         }
       }
-      
+
       // Route to appropriate character page
       if (contentType === "educational") {
         navigate(`/character/educational?project_id=${projectId}`);
       } else {
         navigate(`/character/food?project_id=${projectId}`);
       }
+    }
+  };
+
+  const handleDeleteClick = (e, project) => {
+    e.stopPropagation(); // Prevent card click
+    setDeleteConfirmation({
+      id: project._id,
+      type: project.project_type,
+      name: project.project_name
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation) return;
+
+    try {
+      const { id, type } = deleteConfirmation;
+
+      if (type === "storytelling") {
+        await api.delete(`/projects/${id}`);
+      } else {
+        // Character projects
+        await api.delete(`/gemini/projects/${id}`);
+      }
+
+      setProjects(projects.filter(p => p._id !== id));
+      setDeleteConfirmation(null);
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      setError("Failed to delete project. Please try again.");
     }
   };
 
@@ -226,6 +257,15 @@ export default function Dashboard() {
               >
                 <div className="aspect-video bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60"></div>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, project)}
+                    className="absolute top-2 right-2 p-2 bg-slate-900/50 hover:bg-red-500/80 rounded-full text-slate-400 hover:text-white transition-all duration-300 transform hover:scale-110 opacity-0 group-hover:opacity-100 z-20"
+                    title="Delete Project"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                   <svg className="w-16 h-16 text-purple-300 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -339,6 +379,39 @@ export default function Dashboard() {
                   "Create Project"
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-red-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl transform animate-scaleIn">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100/10 mb-4">
+                <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">Delete Project</h3>
+              <p className="text-slate-400 text-sm mb-6">
+                Are you sure you want to delete "{deleteConfirmation.name}"? This action cannot be undone.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setDeleteConfirmation(null)}
+                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-lg shadow-red-600/30"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>

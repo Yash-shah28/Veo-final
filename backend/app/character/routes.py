@@ -248,3 +248,56 @@ async def get_user_character_projects(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch projects: {str(e)}"
         )
+
+@router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_character_project(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a character project and all its scenes"""
+    try:
+        user_id = str(current_user.id)
+        
+        print(f"DEBUG: Attempting to delete project {project_id} for user {user_id}")
+        
+        # Check if project exists and belongs to user
+        project = await db.character_projects.find_one({
+            "_id": ObjectId(project_id),
+            "user_id": user_id
+        })
+        
+        if not project:
+            print(f"DEBUG: Project {project_id} not found for user {user_id}")
+            # Debug: check if project exists at all
+            p_any = await db.character_projects.find_one({"_id": ObjectId(project_id)})
+            if p_any:
+                print(f"DEBUG: Project exists but user_id mismatch. Project user: {p_any.get('user_id')} (type {type(p_any.get('user_id'))}). Current user: {user_id} (type {type(user_id)})")
+            else:
+                print(f"DEBUG: Project {project_id} does not exist at all in character_projects collection")
+                
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+        
+        # Delete all scenes for this project
+        # Note: project_id in scenes is stored as string in character_scenes (based on line 94)
+        await db.character_scenes.delete_many({"project_id": project_id})
+        
+        # Delete the project
+        await db.character_projects.delete_one({"_id": ObjectId(project_id)})
+        
+        return None
+    except HTTPException:
+        raise
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"❌ DELETE Error: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete project: {str(e)}"
+        )
