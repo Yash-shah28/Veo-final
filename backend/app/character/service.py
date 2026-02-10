@@ -8,28 +8,28 @@ from typing import Dict
 # ========================================
 VOICE_DESCRIPTIONS = {
     "child_happy": {
-        "description": "Cute, cheerful child voice (3-5 years old)",
-        "pitch": "High, bright",
-        "age_range": "3 to 5 years old",
-        "accent": "childlike, clear pronunciation",
+        "description": "Cute, cheerful youthful voice",
+        "pitch": "High",
+        "age_range": "youthful",
+        "accent": "neutral Indian accent",
         "vocal_tone": "bright, high-pitched voice",
         "speaking_style": "playful and energetic tone",
         "emotional_baseline": "speaks with innocent enthusiasm",
-        "characteristics": "Playful, innocent, enthusiastic",
-        "anchor_block": "A child character, 3 to 5 years old, with a bright, high-pitched voice, playful and energetic tone, childlike clear pronunciation, speaks with innocent enthusiasm.",
-        "master_voice_prompt": "High-pitched child voice, cheerful, playful, energetic, clear pronunciation, lively and innocent tone, clean audio."
+        "characteristics": "Youthful, clear pronunciation",
+        "anchor_block": "A youthful character with a bright, high-pitched voice, playful and energetic tone, clear pronunciation, speaks with innocent enthusiasm.",
+        "master_voice_prompt": "Youthful, bright voice, playful and cheerful tone, clear high-pitched delivery, energetic, clean audio."
     },
     "child_excited": {
-        "description": "Energetic, bouncy child voice (3-5 years old)",
-        "pitch": "Very high, excited",
-        "age_range": "3 to 5 years old",
-        "accent": "childlike, eager delivery",
+        "description": "Energetic, bouncy youthful voice",
+        "pitch": "Very high",
+        "age_range": "youthful",
+        "accent": "neutral Indian accent",
         "vocal_tone": "very high, animated voice",
         "speaking_style": "fast-paced and bouncy tone",
         "emotional_baseline": "speaks with bubbling excitement",
-        "characteristics": "Fast-paced, eager, animated",
-        "anchor_block": "A child character, 3 to 5 years old, with a very high, animated voice, fast-paced and bouncy tone, childlike eager delivery, speaks with bubbling excitement.",
-        "master_voice_prompt": "Very high, excited child voice, fast and enthusiastic delivery, playful tone, clear and lively speech, clean audio."
+        "characteristics": "Youthful, eager delivery",
+        "anchor_block": "A youthful character with a very high, animated voice, fast-paced and bouncy tone, eager delivery, speaks with bubbling excitement.",
+        "master_voice_prompt": "Animated, excited voice, high-pitched and fast-paced, bouncy energetic tone, enthusiastic delivery, clean audio."
     },
     "male_friendly": {
         "description": "Friendly, warm adult male voice",
@@ -142,7 +142,8 @@ class CharacterDialogueGenerator:
         scenario: str = "",
         visual_style: str = "Realistic Character",
         language: str = "hindi",
-        total_duration: int = 8
+        total_duration: int = 8,
+        custom_dialogues: str = None  # NEW: Custom dialogues for food
     ) -> Dict:
         """
         Dispatcher: Routes to food or educational character service
@@ -164,7 +165,8 @@ class CharacterDialogueGenerator:
                 scenario=scenario,
                 visual_style=visual_style,
                 language=language,
-                total_duration=total_duration
+                total_duration=total_duration,
+                custom_dialogues=custom_dialogues  # NEW: Pass custom dialogues
             )
         else:  # educational
             return await educational_character_generator.generate_dialogue(

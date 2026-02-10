@@ -16,7 +16,7 @@ const VOICE_TONES = [
 ];
 
 const VISUAL_STYLES = [
-    "3D Animation (Pixar/Disney)",
+    "3D Animation Style",
     "Cinematic Photorealism",
     "Cartoon Style",
     "Anime Style",
@@ -30,7 +30,7 @@ export default function CharacterPage() {
     const { logout } = useAuth();
     const [searchParams] = useSearchParams();
     const projectIdFromUrl = searchParams.get('project_id');
-    
+
     // Project state
     const [projectId, setProjectId] = useState(projectIdFromUrl);
     const [loading, setLoading] = useState(false);
@@ -44,9 +44,11 @@ export default function CharacterPage() {
     const [voiceTone, setVoiceTone] = useState("child_happy");
     const [topicMode, setTopicMode] = useState("");
     const [scenario, setScenario] = useState("");
-    const [visualStyle, setVisualStyle] = useState("3D Animation (Pixar/Disney)");
+    const [visualStyle, setVisualStyle] = useState("3D Animation Style");
     const [language, setLanguage] = useState("hindi");
     const [totalDuration, setTotalDuration] = useState(8);
+    const [customDialogues, setCustomDialogues] = useState("");  // NEW: Custom dialogues from user
+
 
     // Generation state
     const [generating, setGenerating] = useState(false);
@@ -64,11 +66,11 @@ export default function CharacterPage() {
         try {
             setLoading(true);
             const response = await api.get(`/gemini/projects/${pid}/scenes`);
-            
+
             // Load project details
             const project = response.data.project;
             setCharacterName(project.character_name || "");
-            
+
             // Restore ALL form fields from saved project
             if (project.voice_tone) setVoiceTone(project.voice_tone);
             if (project.topic_mode) setTopicMode(project.topic_mode);
@@ -76,16 +78,16 @@ export default function CharacterPage() {
             if (project.visual_style) setVisualStyle(project.visual_style);
             if (project.language) setLanguage(project.language);
             if (project.total_duration) setTotalDuration(project.total_duration);
-            
+
             // Load scenes
             const scenes = response.data.scenes || [];
             setBrokenScenes(scenes);
             setCurrentSceneIndex(0);
-            
+
             if (scenes.length > 0) {
                 setGeneratedPrompt(scenes[0].generated_prompt || "");
             }
-            
+
             setProjectId(pid);
         } catch (err) {
             console.error("Failed to load project:", err);
@@ -115,13 +117,14 @@ export default function CharacterPage() {
                 scenario: scenario,
                 visual_style: visualStyle,
                 language: language,
-                total_duration: totalDuration
+                total_duration: totalDuration,
+                custom_dialogues: customDialogues.trim() || null  // NEW: Send custom dialogues if provided
             });
 
             const scenes = response.data.scenes || [];
             setBrokenScenes(scenes);
             setCurrentSceneIndex(0);
-            
+
             if (scenes.length > 0) {
                 setGeneratedPrompt(scenes[0].prompt || response.data.prompt || "");
             }
@@ -266,6 +269,26 @@ export default function CharacterPage() {
                                     placeholder="Optional context: e.g., 'talking to a child', 'at the gym', 'in a kitchen'"
                                     className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[100px] resize-y"
                                 />
+                            </div>
+
+                            {/* Custom Dialogues - NEW */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    💬 Custom Dialogues (Optional)
+                                </label>
+                                <textarea
+                                    value={customDialogues}
+                                    onChange={(e) => setCustomDialogues(e.target.value)}
+                                    placeholder="Enter your own dialogues here, and AI will break them into scenes.&#10;&#10;Example:&#10;मैं Apple हूँ। मुझमें Vitamin C है। Heart को healthy रखता हूँ। Energy boost करता हूँ।&#10;&#10;Leave empty if you want AI to generate dialogues automatically."
+                                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-[120px] resize-y"
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {customDialogues.trim() ? (
+                                        <span className="text-green-400">✓ Custom dialogues will be broken into {Math.ceil(totalDuration / 8)} scenes</span>
+                                    ) : (
+                                        "If empty, AI will generate dialogues based on character and topic"
+                                    )}
+                                </p>
                             </div>
 
                             {/* Visual Style */}

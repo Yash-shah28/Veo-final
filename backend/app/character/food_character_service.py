@@ -31,7 +31,8 @@ class FoodCharacterGenerator:
         scenario: str,
         visual_style: str,
         language: str,
-        total_duration: int
+        total_duration: int,
+        custom_dialogues: str = None  # NEW: User-provided dialogues
     ) -> Dict:
         """Generate food character dialogue with STRICT 7-second limits"""
         
@@ -54,7 +55,7 @@ class FoodCharacterGenerator:
         
         # Calculate scenes
         num_scenes = max(1, total_duration // 8)
-        print(f"📊 Scenes: {num_scenes}")
+        print(f"📊 Duration: {total_duration}s → Creating {num_scenes} scenes (8s each)")
         
         # Determine visual tone based on topic
         if topic_mode == "side_effects":
@@ -64,8 +65,76 @@ class FoodCharacterGenerator:
         
         lang_display = "HINDI (Devanagari + English Terms)" if language == "hindi" else "ENGLISH"
         
-        # Build food-specific prompt
-        system_prompt = f"""Create {num_scenes} 7-SECOND video scenes about {character_name} ({topic_mode}).
+        # Build food-specific prompt - TWO MODES
+        if custom_dialogues and custom_dialogues.strip():
+            # MODE 1: User provided dialogues - break them into scenes
+            print(f"💬 Using custom dialogues ({len(custom_dialogues)} chars)")
+            system_prompt = f"""You MUST create EXACTLY {num_scenes} scenes by breaking these dialogues.
+
+USER PROVIDED DIALOGUES:
+\"\"\"{custom_dialogues.strip()}\"\"\"
+
+🚨 CRITICAL REQUIREMENT 🚨:
+You MUST generate EXACTLY {num_scenes} scenes. Do NOT generate just 1 scene!
+Break the user's dialogues into {num_scenes} equal parts and create one scene for each part.
+
+INSTRUCTIONS:
+1. Read ALL the user's dialogues above
+2. Divide them into {num_scenes} roughly equal portions
+3. Create EXACTLY {num_scenes} scenes (===SCENE 1===, ===SCENE 2===, ===SCENE 3===, etc.)
+4. Each scene gets one portion of the dialogues
+5. Use the EXACT words from user (no translation, no changes)
+
+FORMAT FOR EACH SCENE:
+===SCENE X===
+Visual Prompt (Veo 3 Format):
+Anthropomorphic {character_name}, {visual_style} style. [Detailed appearance - shape, size, color, facial features]. {visual_tone}. [Action/gesture]. [Setting description - kitchen, garden, studio]. [Camera angle]. [Lighting]. No subtitles.
+
+Dialogue ({lang_display}):
+[Portion of user's dialogues - MAX 20 WORDS for Scene 1, MAX 15 WORDS for other scenes]
+
+Teaching Point:
+[What this portion is teaching]
+===END SCENE X===
+
+🚨 SCENE LIMIT ENFORCEMENT 🚨:
+✅ Scene 1: Extract first 20 words from user's dialogues
+✅ Scene 2: Next 15 words from remaining dialogues
+✅ Scene 3: Next 15 words from remaining dialogues
+✅ Continue until ALL {num_scenes} scenes are created
+✅ Use ALL of the user's dialogues across all scenes
+
+🎨 VISUAL REQUIREMENTS (80+ words per prompt):
+✅ Anthropomorphic {character_name} character
+✅ {visual_style} animation style
+✅ {visual_tone}
+✅ Detailed facial features, expressions, gestures
+✅ Rich environment description
+✅ Camera work and lighting details
+
+EXAMPLE (if user provides long dialogue and num_scenes=3):
+===SCENE 1===
+Visual Prompt: Anthropomorphic Apple, 3D  style, vibrant red with glossy texture...
+Dialogue: [First 20 words from user's text]
+Teaching Point: [Inferred from these words]
+===END SCENE 1===
+
+===SCENE 2===
+Visual Prompt: Same Apple character, different pose and setting...
+Dialogue: [Next 15 words from user's text]
+Teaching Point: [Inferred from these words]
+===END SCENE 2===
+
+===SCENE 3===
+Visual Prompt: Apple character in another scenario...
+Dialogue: [Final 15 words from user's text]
+Teaching Point: [Inferred from these words]
+===END SCENE 3===
+
+NOW CREATE ALL {num_scenes} SCENES:"""
+        else:
+            # MODE 2: Auto-generate dialogues (original behavior)
+            system_prompt = f"""Create {num_scenes} 7-SECOND video scenes about {character_name} ({topic_mode}).
 
 LANGUAGE: {lang_display}
 🚨 USE DEVANAGARI FOR HINDI + ENGLISH FOR TERMS
@@ -107,7 +176,7 @@ Teaching Point:
 
 🎨 VISUAL RULES:
 ✅ Anthropomorphic food character (round apple with face, orange carrot)
-✅ 3D Pixar-Disney animation style
+✅ 3D  animation style
 ✅ {"Concerned/serious/warning facial expressions" if topic_mode == "side_effects" else "Happy/friendly facial expressions (big eyes, friendly smile)"}
 ✅ Detailed facial features
 ✅ 80+ words per visual prompt
@@ -127,7 +196,7 @@ CORRECT EXAMPLES:
 
 ===SCENE 1===
 Visual Prompt:
-Anthropomorphic Apple character, rendered in charming 3D Pixar-Disney style. Vibrant red, perfectly round with glossy texture, small brown stem, two bright green leaves. Large expressive cartoon eyes with sparkles, thick eyelashes, wide friendly smile. Standing on white marble kitchen counter, body bouncing enthusiastically. Animated sparkles around suggesting freshness. Bright modern kitchen, soft natural sunlight through window, warm glow. Medium shot at eye level, personable and approachable. Soft lighting highlights glossy surface. No subtitles.
+Anthropomorphic Apple character, rendered in charming 3D animated style. Vibrant red, perfectly round with glossy texture, small brown stem, two bright green leaves. Large expressive cartoon eyes with sparkles, thick eyelashes, wide friendly smile. Standing on white marble kitchen counter, body bouncing enthusiastically. Animated sparkles around suggesting freshness. Bright modern kitchen, soft natural sunlight through window, warm glow. Medium shot at eye level, personable and approachable. Soft lighting highlights glossy surface. No subtitles.
 
 Dialogue (HINDI):
 मैं Apple हूँ। मुझमें Vitamin C है।
@@ -237,7 +306,6 @@ TEACHING:
 === METADATA ===
 Duration: 7-8 seconds (SHORT!)
 Style: {visual_style}
-Type: food
 
 SPEAKER:
 ID: {character_name.lower().replace(' ', '_')}_{voice_tone}
