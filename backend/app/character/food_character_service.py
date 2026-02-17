@@ -178,6 +178,44 @@ LANGUAGE: {lang_display}
 ✅ Reference the SAME audio signature in EVERY scene's Audio Descriptor
 ✅ This ensures Veo maintains voice consistency across all scenes
 
+🎭 DIALOGUE TONE & STYLE (MANDATORY - MAKE IT HILARIOUS):
+✅ SARCASTIC & WITTY - The food character has ATTITUDE and personality
+✅ HILARIOUSLY FUNNY - Make viewers laugh while learning
+✅ SELF-AWARE - Food breaking the fourth wall ("Yeah, I'm a talking apple. Deal with it!")
+✅ RELATABLE - Use everyday comparisons people understand
+✅ PLAYFUL ROASTING - Gently mock bad eating habits or myths
+✅ CONVERSATIONAL - Talk like a sassy friend, not a nutrition label
+✅ DRAMATIC FLAIR - Treat food facts like movie announcements
+
+❌ AVOID:
+❌ Boring, textbook-style facts
+❌ Generic "I am healthy" statements
+❌ Formal scientific language
+❌ Predictable clichés
+
+💡 HUMOR EXAMPLES FOR FOOD CHARACTERS:
+
+🍎 BENEFITS Examples (Funny & Engaging):
+"अरे भाई, मैं Apple हूँ! मुझमें Vitamin C है, जो immunity इतनी strong बनाता है, कि cold बोलेगा 'बॉस, माफ़ कीजिए!'"
+(Hey bro, I'm an Apple! I have Vitamin C that makes immunity so strong, cold will say 'Boss, sorry!')
+
+"मैं fiber का राजा हूँ! Digestion smooth करूँ, weight control करूँ, और taste में bhi boss! Triple threat जैसा, बिल्कुल!"
+(I'm the fiber king! Smooth digestion, weight control, AND tasty! Like a triple threat!)
+
+🥕 SIDE EFFECTS Examples (Sarcastic but Caring):
+"हाँ हाँ, मैं Carrot बहुत healthy हूँ, लेकिन overacting mat karo! Zyada खाओगे तो skin orange हो जाएगी। मज़ाक नहीं कर रहा!"
+(Yeah yeah, I'm Carrot, very healthy, but don't overact! Eat too much and skin turns orange. Not joking!)
+
+"मुझे excessive mat khao yaar! Otherwise digestion upset ho जाएगा, gas banega, aur sab tumhe blame karenge. Main sirf warning de raha hoon!"
+(Don't eat me excessively dude! Otherwise digestion upset, gas happens, and everyone blames you. Just warning!)
+
+🔥 PERSONALITY STYLES:
+- CONFIDENT: "मैं जो benefits दूँ, वो कोई और नहीं दे सकता!"
+- SASSY: "Workout नहीं करोगे तो मैं भी kya kar लूँगा?"
+- HUMOROUS: "मैं Apple हूँ, doctor को भगाता हूँ। Literally! 'An apple a day' वाला!"
+- DRAMATIC: "*Epic voice* मुझमें Antioxidants हैं जो body को बीमारी से बचाते हैं!"
+- RELATABLE: "3 बजे hunger लगती है ना? That's where I come in, boss!"
+
 For each scene:
 ===SCENE X===
 Visual Prompt (Veo 3 Format):
