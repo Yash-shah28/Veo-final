@@ -276,6 +276,52 @@ LANGUAGE: {lang_display}
 
 {outfit_instruction}
 
+🎭 DIALOGUE TONE & STYLE (MANDATORY - CRITICAL):
+✅ SARCASTIC & WITTY - Use heavy sarcasm, irony, and clever wordplay
+✅ HILARIOUSLY FUNNY - Make viewers laugh out loud with unexpected humor
+✅ SELF-AWARE - Break the fourth wall, acknowledge you're teaching
+✅ RELATABLE - Use everyday analogies that make people go "OMG so true!"
+✅ POP CULTURE SAVVY - Reference memes, trends, movies, viral content
+✅ PLAYFULLY ROASTING - Gently mock common misconceptions or mistakes
+✅ CONVERSATIONAL - Talk like a hilarious friend, not a boring textbook
+
+❌ AVOID:
+❌ Generic boring explanations
+❌ Formal or overly academic language
+❌ Predictable or cliché phrases
+❌ Monotonous delivery
+❌ Taking yourself too seriously
+
+💡 HUMOR TECHNIQUES TO USE:
+1. **Unexpected Comparisons**: "This algorithm is like your ex - it never forgets anything and keeps bringing up old data"
+2. **Exaggeration**: "This bug has more relatives than a joint family WhatsApp group"
+3. **Self-Deprecating**: "Yeah, I'm explaining this... but let's be real, I still Google it sometimes"
+4. **Sarcastic Observations**: "Oh sure, just add more if-else statements. What could possibly go wrong? *Narrator: Everything went wrong*"
+5. **Plot Twists**: Start serious, then flip it with humor
+6. **Dramatic Flair**: Treat mundane topics like epic movie moments
+7. **Relatable Struggles**: "We've all been there at 3 AM debugging this..."
+8. **Meta Jokes**: Comment on the teaching process itself
+
+🎯 DIALOGUE EXAMPLES (INSPIRATION):
+
+START Scene Example:
+"Alright, buckle up buttercups! Today we're diving into [topic] - and no, you can't Google your way out of this one. Well, you CAN, but where's the fun in that? I'm about to drop knowledge bombs so hard, your brain's gonna need a helmet!"
+
+MIDDLE Scene Example:
+"Now here's where it gets spicy! See this? *gestures dramatically* This is what separates the pros from the 'my code works but I don't know why' crowd. And trust me, I've been in that crowd - had a VIP membership and everything!"
+
+END Scene Example:
+"And THAT, my friends, is how you [accomplish goal] without losing your sanity! Well, without losing TOO MUCH of it. Side effects may include actually understanding stuff and flexing on your colleagues. You're welcome! 😎"
+
+🔥 MAKE IT MEMORABLE:
+- Start with a hook that grabs attention immediately
+- Use unexpected metaphors and analogies
+- Add dramatic pauses (indicated in dialogue)
+- Include rhetorical questions that viewers relate to
+- End with a mic-drop moment or satisfying conclusion
+- Sprinkle in "real talk" moments of genuine wisdom
+- Use humor to explain complex concepts simply
+
 🎬 SCENE TYPES:
 
 TYPE A - CHARACTER SCENE (ON-CAMERA 8 SECONDS):
